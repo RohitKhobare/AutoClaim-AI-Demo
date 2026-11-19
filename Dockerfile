@@ -1,7 +1,7 @@
 FROM node:22-bookworm-slim
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends libaio1 libnuma1 tar \
+  && apt-get install -y --no-install-recommends libaio1 libnuma1 tar xz-utils \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
