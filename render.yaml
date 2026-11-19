@@ -4,7 +4,8 @@ services:
     runtime: node
     plan: free
     buildCommand: npm ci
-    startCommand: "npm run db:init -- --seed && npm start"
+    preDeployCommand: npm run db:init -- --seed
+    startCommand: npm start
     healthCheckPath: /
     autoDeploy: true
     envVars:
