@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     buildCommand: npm ci
-    startCommand: "npm run db:init -- --seed && npm start"
+    startCommand: npm run start:demo
     healthCheckPath: /
     autoDeploy: true
     envVars:
@@ -20,13 +20,3 @@ services:
         generateValue: true
       - key: ADMIN_DEMO_PASSWORD
         generateValue: true
-      - key: DB_HOST
-        sync: false
-      - key: DB_PORT
-        sync: false
-      - key: DB_USER
-        sync: false
-      - key: DB_PASSWORD
-        sync: false
-      - key: DB_NAME
-        sync: false
