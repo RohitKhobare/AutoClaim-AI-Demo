@@ -1,0 +1,118 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main>
+  <section class="section" style="padding-bottom:2rem">
+    <div class="container">
+      <div class="grid grid-2" style="gap:3rem;align-items:center">
+        <div>
+          <span class="eyebrow">About the platform</span>
+          <h1 class="mt-1" style="font-size:clamp(1.9rem,3.6vw,2.7rem)">Insurance claims should not take weeks to verify.</h1>
+          <p class="lead">AutoClaim AI is an AI-assisted motor insurance claim platform. It replaces the paperwork, branch visits and manual photo inspection with a verifiable pipeline: documents are read and cross-checked, photographs are tested for manipulation, damage is located and priced, the policy itself is consulted, and a human adjuster makes the final decision with the whole evidence trail in front of them.</p>
+          <p class="lead">Built as a final-year engineering project at PES Modern College of Engineering, Pune — designed against the same patterns used by InsurTech platforms such as Tractable, Shift Technology and Allianz Nemo.</p>
+        </div>
+        <div class="card card-pad">
+          <h3 style="font-size:.95rem">What makes it different</h3>
+          <ul class="list-clean">
+            <li><b>Evidence, not guesses.</b> Every claim carries OCR fields, image forensics scores, damage detections and clause citations.</li>
+            <li><b>Humans decide.</b> The AI produces a recommendation and confidence; settlement is always confirmed by an adjuster.</li>
+            <li><b>Auditable end to end.</b> Intake, analysis, overrides, decisions and payouts are all time-stamped.</li>
+            <li><b>Coverage reasoning.</b> Retrieval over the actual policy clauses answers “is this damage covered?” with a clause number.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="background:var(--surface-2);border-block:1px solid var(--border)">
+    <div class="container">
+      <div class="section-head center">
+        <span class="eyebrow">Architecture</span>
+        <h2>The claim pipeline</h2>
+        <p class="lead">Eight verifiable stages, plus a coverage and fraud layer that decides what to do next.</p>
+      </div>
+      <div class="pipeline-grid">
+        <% [
+          ['upload', 'Document intake', 'Accident photos, RC, licence, policy, FIR and claim form'],
+          ['scan', 'OCR agent', 'Field extraction and cross-verification with the policy record'],
+          ['sparkles', 'Image forensics', 'Vision transformer scores AI-generated / edited probability'],
+          ['car', 'Vehicle classifier', 'CNN confirms brand, model and year against the insured vehicle'],
+          ['camera', 'Damage detector', 'YOLOv11 localises every dent, scratch and broken part'],
+          ['gauge', 'Severity model', 'Minor / moderate / major / total-loss scoring'],
+          ['rupee', 'Cost estimator', 'Parts, labour, paint and other charges from IDV and market rates'],
+          ['file-check', 'Decision engine', 'Fraud + coverage agents produce an explainable decision record']
+        ].forEach(function (s, i) { %>
+          <article class="pipe-card">
+            <span class="pipe-num"><%= i + 1 %></span>
+            <div class="pipe-icon"><svg class="icon"><use href="#i-<%= s[0] %>"/></svg></div>
+            <h4><%= s[1] %></h4>
+            <p><%= s[2] %></p>
+          </article>
+        <% }); %>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="grid grid-2" style="gap:2.5rem;align-items:start">
+        <div>
+          <span class="eyebrow">Technology</span>
+          <h2 class="mt-1">Built to be extended</h2>
+          <p class="lead">The web application is deliberately separated from the model layer. Each AI stage in this build is a deterministic stand-in with the exact input/output contract of its production counterpart, so a Python inference service can replace any stage without touching the rest of the system.</p>
+          <table class="table mt-2">
+            <thead><tr><th>Layer</th><th>Technology</th></tr></thead>
+            <tbody>
+              <tr><td>Web application</td><td>Node.js · Express · EJS · MySQL</td></tr>
+              <tr><td>OCR</td><td>PaddleOCR / TrOCR → structured fields</td></tr>
+              <tr><td>Image forensics</td><td>ViT AI-image / deepfake detector</td></tr>
+              <tr><td>Vehicle + damage vision</td><td>CNN classifier · YOLOv11</td></tr>
+              <tr><td>Severity + cost</td><td>EfficientNet-B4 · XGBoost regression</td></tr>
+              <tr><td>Coverage (RAG)</td><td>all-MiniLM-L6-v2 · FAISS · LLM reasoning</td></tr>
+              <tr><td>Fraud</td><td>XGBoost + entity-graph features</td></tr>
+              <tr><td>Payments</td><td>Razorpay checkout / demo gateway</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="stack">
+          <div class="card card-pad">
+            <h3 style="font-size:.95rem">Project team</h3>
+            <p class="small text-muted">BE Computer Engineering · Group C11 · A.Y. 2026-27</p>
+            <ul class="list-clean">
+              <li>Vasudha Patil</li>
+              <li>Balaji Raparti</li>
+              <li>Amogh Waskar</li>
+              <li><b>Rohit Khobare</b> — project lead & platform</li>
+              <li>Jignesh Patil</li>
+            </ul>
+          </div>
+          <div class="card card-pad">
+            <h3 style="font-size:.95rem">Claims desk</h3>
+            <p class="small text-muted mb-2"><%= company.supportHours %></p>
+            <div class="stack-sm small">
+              <a class="flex" href="tel:<%= contact.phone %>" style="gap:.5rem"><svg class="icon" style="width:16px;height:16px"><use href="#i-phone"/></svg> +91 <%= contact.phone %> · <%= contact.person %></a>
+              <a class="flex" href="mailto:<%= contact.email %>" style="gap:.5rem"><svg class="icon" style="width:16px;height:16px"><use href="#i-mail"/></svg> <%= contact.email %></a>
+              <span class="flex" style="gap:.5rem"><svg class="icon" style="width:16px;height:16px"><use href="#i-map-pin"/></svg> <%= contact.address %></span>
+            </div>
+            <a class="btn btn-outline btn-sm mt-2" href="/contact">Contact us</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-sm">
+    <div class="container">
+      <div class="cta-band">
+        <div>
+          <h2>See the pipeline for yourself</h2>
+          <p>Use a seeded demo account to file a claim and watch every stage produce evidence.</p>
+        </div>
+        <a class="btn btn-gold btn-lg" href="/login" style="position:relative;z-index:1">Open the portal</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

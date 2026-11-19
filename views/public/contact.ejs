@@ -1,0 +1,103 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main>
+  <section class="section">
+    <div class="container">
+      <div class="grid" style="grid-template-columns:1fr 1.2fr;gap:3rem;align-items:start">
+        <div>
+          <span class="eyebrow"><%= t('nav.contact') %></span>
+          <h1 class="mt-1" style="font-size:clamp(1.8rem,3.4vw,2.5rem)">Talk to the claims desk</h1>
+          <p class="lead">Questions about a policy, a pending claim or the settlement process? Send a message and the team will get back within one working day.</p>
+
+          <div class="stack mt-3">
+            <a class="card card-pad card-link" href="tel:<%= contact.phone %>">
+              <div class="flex" style="gap:.8rem">
+                <span class="feature-icon"><svg class="icon"><use href="#i-phone"/></svg></span>
+                <div>
+                  <div class="small text-muted">Phone · <%= company.supportHours %></div>
+                  <b>+91 <%= contact.phone %></b>
+                  <div class="small text-muted"><%= contact.person %></div>
+                </div>
+              </div>
+            </a>
+            <a class="card card-pad card-link" href="mailto:<%= contact.email %>">
+              <div class="flex" style="gap:.8rem">
+                <span class="feature-icon"><svg class="icon"><use href="#i-mail"/></svg></span>
+                <div>
+                  <div class="small text-muted">Email</div>
+                  <b><%= contact.email %></b>
+                  <div class="small text-muted">Attach your claim number for faster handling</div>
+                </div>
+              </div>
+            </a>
+            <div class="card card-pad">
+              <div class="flex" style="gap:.8rem">
+                <span class="feature-icon"><svg class="icon"><use href="#i-map-pin"/></svg></span>
+                <div>
+                  <div class="small text-muted">Office</div>
+                  <b><%= company.insurer %></b>
+                  <div class="small text-muted"><%= contact.address %></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="note-box is-info mt-3 small">
+            Already a customer? Open a support ticket from your dashboard — it links the conversation to your policy and claim history.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Send a message</h3>
+            <span class="badge is-neutral">Usually replies in 1 working day</span>
+          </div>
+          <div class="card-body">
+            <% if (errors && errors.length) { %>
+              <div class="note-box is-danger mb-2">
+                <b>Please check the form:</b>
+                <ul style="margin:.35rem 0 0 1rem;padding:0">
+                  <% errors.forEach(function (e) { %><li><%= e %></li><% }); %>
+                </ul>
+              </div>
+            <% } %>
+
+            <form action="/contact" method="post" class="form-grid">
+              <div class="grid grid-2" style="gap:.9rem">
+                <div class="field">
+                  <label for="name">Full name <span class="req">*</span></label>
+                  <input class="input" id="name" name="name" required value="<%= form.name || '' %>" placeholder="Your name">
+                </div>
+                <div class="field">
+                  <label for="phone">Mobile <span class="text-muted small">(optional)</span></label>
+                  <input class="input" id="phone" name="phone" inputmode="numeric" maxlength="10" value="<%= form.phone || '' %>" placeholder="98220 11001">
+                </div>
+              </div>
+              <div class="field">
+                <label for="email">Email address <span class="req">*</span></label>
+                <input class="input" id="email" name="email" type="email" required value="<%= form.email || '' %>" placeholder="you@example.com">
+              </div>
+              <div class="field">
+                <label for="subject">Subject <span class="req">*</span></label>
+                <select class="select" id="subject" name="subject" required>
+                  <% ['Claim status enquiry','Policy and coverage question','Settlement or payment','Technical issue','Corporate / fleet enquiry','Other'].forEach(function (s) { %>
+                    <option <%= form.subject === s ? 'selected' : '' %>><%= s %></option>
+                  <% }); %>
+                </select>
+              </div>
+              <div class="field">
+                <label for="message">Message <span class="req">*</span></label>
+                <textarea class="textarea" id="message" name="message" required placeholder="Tell us what you need help with. Include your claim number if you have one."><%= form.message || '' %></textarea>
+                <span class="hint">Minimum 15 characters.</span>
+              </div>
+              <button class="btn btn-primary btn-lg" type="submit">Send message <svg class="icon"><use href="#i-arrow-right"/></svg></button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

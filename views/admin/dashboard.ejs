@@ -1,0 +1,153 @@
+<%- include('../partials/admin-start') %>
+
+<div class="page-head">
+  <div>
+    <h1 style="font-size:1.35rem">Operations overview</h1>
+    <p class="lead">Live claim volume, AI performance and the review queue.</p>
+  </div>
+  <div class="flex">
+    <a class="btn btn-outline btn-sm" href="/admin/import"><svg class="icon"><use href="#i-database"/></svg> Import dataset</a>
+    <a class="btn btn-primary btn-sm" href="/admin/claims?status=manual_review"><svg class="icon"><use href="#i-user-check"/></svg> Review queue (<%= metrics.pendingReview %>)</a>
+  </div>
+</div>
+
+<div class="grid grid-4 mb-3">
+  <div class="stat card-accent">
+    <div class="stat-label">Total claims</div>
+    <div class="stat-value"><%= helpers.formatNumber(metrics.total) %></div>
+    <div class="stat-sub"><%= metrics.completed %> analysed by AI · <%= metrics.pendingReview %> open</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">STP-eligible</div>
+    <div class="stat-value pos"><%= metrics.stpRate.toFixed(1) %>%</div>
+    <div class="stat-sub"><%= metrics.autoApproved %> claims cleared all automated checks</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Fraud flags</div>
+    <div class="stat-value <%= metrics.fraudFlagged ? 'neg' : '' %>"><%= metrics.fraudFlagged %></div>
+    <div class="stat-sub"><%= metrics.fraudCatchRate.toFixed(1) %>% of analysed claims</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Avg verification</div>
+    <div class="stat-value"><%= metrics.avgSeconds.toFixed(1) %>s</div>
+    <div class="stat-sub">per claim across the 8 stages</div>
+  </div>
+</div>
+
+<div class="grid" style="grid-template-columns:1.6fr 1fr;gap:1.25rem;align-items:start">
+  <div class="card">
+    <div class="card-head">
+      <div><h3>Claim volume</h3><div class="small text-muted">Last 8 weeks</div></div>
+      <div class="legend">
+        <span><i style="background:color-mix(in srgb, var(--primary) 22%, transparent)"></i> Submitted</span>
+        <span><i style="background:var(--primary)"></i> Approved</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="bars">
+        <% weeks.forEach(function (w) { %>
+          <div class="bar-col">
+            <div style="flex:1;display:flex;align-items:flex-end;justify-content:center;gap:3px;width:100%">
+              <div class="bar" data-bar-value="<%= w.claims %> claims" style="height:<%= Math.max(2, (w.claims / maxWeek) * 100) %>%;width:11px"></div>
+              <div class="bar is-approved" data-bar-value="<%= w.approved %> approved" style="height:<%= Math.max(2, (w.approved / maxWeek) * 100) %>%;width:11px"></div>
+            </div>
+            <span class="bar-label"><%= w.label %></span>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Claim status mix</h3></div>
+    <div class="card-body">
+      <% var done = (metrics.approved + metrics.settled + metrics.rejected) || 1; %>
+      <% var approvedPct = ((metrics.approved + metrics.settled) / done) * 100; %>
+      <% var rejectedPct = (metrics.rejected / done) * 100; %>
+      <% var pendingPct = Math.max(0, 100 - approvedPct - rejectedPct); %>
+      <div class="flex" style="gap:1.25rem;align-items:center">
+        <div class="donut" style="--a:<%= approvedPct %>;--b:<%= pendingPct %>">
+          <div><b><%= Math.round(approvedPct) %>%</b><span>Approved</span></div>
+        </div>
+        <div class="stack-sm" style="flex:1;font-size:.8rem">
+          <div class="row-between"><span class="flex" style="gap:.4rem"><i style="width:9px;height:9px;border-radius:3px;background:var(--green-700);display:inline-block"></i> Approved / settled</span><b><%= metrics.approved + metrics.settled %></b></div>
+          <div class="row-between"><span class="flex" style="gap:.4rem"><i style="width:9px;height:9px;border-radius:3px;background:var(--gold-500);display:inline-block"></i> In review</span><b><%= metrics.pendingReview %></b></div>
+          <div class="row-between"><span class="flex" style="gap:.4rem"><i style="width:9px;height:9px;border-radius:3px;background:var(--danger);display:inline-block"></i> Rejected</span><b><%= metrics.rejected %></b></div>
+          <div class="divider" style="margin:.3rem 0"></div>
+          <div class="row-between"><span class="text-muted">Settled value</span><b><%= helpers.formatCompactCurrency(metrics.settledAmount) %></b></div>
+          <div class="row-between"><span class="text-muted">Customers</span><b><%= counts.customers %></b></div>
+          <div class="row-between"><span class="text-muted">Active policies</span><b><%= counts.active_policies %> / <%= counts.policies %></b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grid" style="grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:1.25rem;align-items:start">
+  <div class="card">
+    <div class="card-head">
+      <h3>Needs a decision</h3>
+      <a class="small" href="/admin/claims?status=manual_review">View queue →</a>
+    </div>
+    <% if (!queue.length) { %>
+      <div class="empty" style="padding:2rem"><svg class="icon"><use href="#i-check-circle"/></svg><h4>Queue is clear</h4><p class="mb-0">No claims are waiting for manual review.</p></div>
+    <% } else { %>
+      <div class="table-wrap" style="border:0">
+        <table class="table table-compact">
+          <thead><tr><th>Claim</th><th>Customer</th><th>Risk</th><th class="num">Estimate</th><th></th></tr></thead>
+          <tbody>
+            <% queue.forEach(function (c) { var rk = helpers.RISK_META[c.risk_level]; %>
+              <tr>
+                <td><a class="mono small" href="/admin/claims/<%= c.id %>"><%= c.claim_number %></a><div class="small text-muted"><%= c.registration_no %></div></td>
+                <td class="small"><%= c.customer_name %></td>
+                <td><% if (rk) { %><span class="badge is-<%= rk.tone %>"><%= rk.label %></span><% } else { %>—<% } %></td>
+                <td class="num small"><%= c.repair_cost ? helpers.formatCurrency(c.repair_cost) : '—' %></td>
+                <td class="text-right"><a class="btn btn-primary btn-sm" href="/admin/claims/<%= c.id %>">Review</a></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Recent submissions</h3><a class="small" href="/admin/claims">All claims →</a></div>
+    <div class="table-wrap" style="border:0">
+      <table class="table table-compact">
+        <thead><tr><th>Claim</th><th>Vehicle</th><th>AI</th><th>Status</th></tr></thead>
+        <tbody>
+          <% recent.forEach(function (c) { var sm = helpers.statusMeta(c.status); var rec = helpers.RECOMMENDATION_META[c.ai_recommendation]; %>
+            <tr>
+              <td><a class="mono small" href="/admin/claims/<%= c.id %>"><%= c.claim_number %></a><div class="small text-muted"><%= helpers.timeAgo(c.created_at) %></div></td>
+              <td class="small"><%= c.make %> <%= c.model %><div class="mono small text-muted"><%= c.registration_no %></div></td>
+              <td class="small"><% if (rec) { %><span class="badge is-<%= rec.tone %>"><%= rec.label %></span><% } else { %><span class="badge is-neutral">Pending</span><% } %></td>
+              <td><span class="badge is-<%= sm.tone %>"><%= sm.label %></span></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-4 mt-3">
+  <a class="card card-pad card-link" href="/admin/tickets">
+    <div class="small text-muted">Open support tickets</div>
+    <div class="stat-value" style="font-size:1.4rem"><%= counts.open_tickets %></div>
+  </a>
+  <a class="card card-pad card-link" href="/admin/messages">
+    <div class="small text-muted">New enquiries</div>
+    <div class="stat-value" style="font-size:1.4rem"><%= counts.new_messages %></div>
+  </a>
+  <a class="card card-pad card-link" href="/admin/vehicles">
+    <div class="small text-muted">Vehicles on record</div>
+    <div class="stat-value" style="font-size:1.4rem"><%= counts.vehicles %></div>
+  </a>
+  <a class="card card-pad card-link" href="/admin/settings">
+    <div class="small text-muted">Auto-approve threshold</div>
+    <div class="stat-value" style="font-size:1.4rem"><%= thresholds.auto_approve_confidence || 88 %>%</div>
+  </a>
+</div>
+
+<%- include('../partials/admin-end') %>

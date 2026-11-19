@@ -1,0 +1,70 @@
+<%- include('../partials/admin-start') %>
+
+<div class="page-head">
+  <div><h1 style="font-size:1.35rem">Import dataset (CSV)</h1><p class="lead">Bulk-load customers, vehicles and policies — the same data the claim wizard reads from.</p></div>
+</div>
+
+<div class="grid" style="grid-template-columns:1fr 1fr;gap:1.25rem;align-items:start">
+  <div class="card">
+    <div class="card-head"><h3>Upload or paste CSV</h3></div>
+    <div class="card-body">
+      <form action="/admin/import" method="post" enctype="multipart/form-data" class="form-grid">
+        <label class="file-drop" data-file-drop>
+          <svg class="icon"><use href="#i-file"/></svg>
+          <div class="flex-1"><div class="fd-name" data-file-name>Choose a .csv file</div><div class="fd-hint">Header row required</div></div>
+          <input type="file" name="documents" accept=".csv,text/csv">
+        </label>
+        <div class="field">
+          <label for="csv">…or paste rows</label>
+          <textarea class="textarea mono" id="csv" name="csv" style="min-height:220px;font-size:.76rem">customer_name,email,phone,city,reg_no,make,model,year,fuel,policy_number,policy_type,start_date,end_date,sum_insured,idv,premium,status
+Suresh Pawar,suresh.pawar@example.com,9876501234,Pune,MH12ZZ4455,Maruti Suzuki,Baleno,2021,petrol,POL-2026-2001,comprehensive,2026-01-15,2027-01-14,750000,640000,15600,active
+Farhan Qureshi,farhan.q@example.com,9822004455,Mumbai,MH01AA7788,Hyundai,Venue,2022,petrol,POL-2026-2002,comprehensive,2026-03-10,2027-03-09,950000,860000,18900,active</textarea>
+        </div>
+        <button class="btn btn-primary" type="submit"><svg class="icon"><use href="#i-database"/></svg> Import dataset</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><h3>Column reference</h3></div>
+      <div class="card-body">
+        <table class="table table-compact">
+          <thead><tr><th>Column</th><th>Required</th></tr></thead>
+          <tbody>
+            <% [['customer_name', false], ['email', true], ['phone', true], ['city', false], ['reg_no', true],
+                ['make', true], ['model', true], ['year', false], ['fuel', false], ['policy_number', true],
+                ['policy_type', false], ['start_date', false], ['end_date', false], ['sum_insured', false],
+                ['idv', false], ['premium', false], ['status', false]].forEach(function (r) { %>
+              <tr><td class="mono small"><%= r[0] %></td><td><span class="badge is-<%= r[1] ? 'danger' : 'neutral' %>"><%= r[1] ? 'Required' : 'Optional' %></span></td></tr>
+            <% }); %>
+          </tbody>
+        </table>
+        <p class="hint mt-2 mb-0">Dates use <code>YYYY-MM-DD</code>. Existing customers (by email) and vehicles (by registration) are reused; duplicate policy numbers are skipped.</p>
+      </div>
+    </div>
+
+    <% if (report) { %>
+      <div class="card">
+        <div class="card-head"><h3>Import result</h3><span class="badge is-<%= report.skipped ? 'warn' : 'success' %>"><%= report.rows %> rows processed</span></div>
+        <div class="card-body">
+          <div class="grid grid-3" style="gap:.6rem">
+            <div class="soft"><div class="small text-muted">Customers</div><b>+<%= report.customers %></b></div>
+            <div class="soft"><div class="small text-muted">Vehicles</div><b>+<%= report.vehicles %></b></div>
+            <div class="soft"><div class="small text-muted">Policies</div><b>+<%= report.policies %></b></div>
+          </div>
+          <% if (report.errors && report.errors.length) { %>
+            <div class="note-box is-warn mt-2 small">
+              <b><%= report.skipped %> row(s) skipped</b>
+              <ul style="margin:.35rem 0 0 1rem;padding:0">
+                <% report.errors.slice(0, 12).forEach(function (e) { %><li><%= e %></li><% }); %>
+              </ul>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/admin-end') %>

@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: autoclaim-ai-demo
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: "npm run db:init -- --seed && npm start"
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: "true"
+      - key: DB_SSL
+        value: "true"
+      - key: DEMO_PASSWORD
+        value: Auto@123
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_DEMO_PASSWORD
+        generateValue: true
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false

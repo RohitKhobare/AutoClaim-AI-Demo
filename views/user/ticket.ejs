@@ -1,0 +1,49 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<% var st = helpers.TICKET_STATUS[ticket.status]; %>
+<main class="container container-narrow" style="padding-top:1.75rem;padding-bottom:2rem">
+  <div class="page-head">
+    <div>
+      <div class="breadcrumb"><a href="/app/support">Support</a><svg class="icon"><use href="#i-chevron-right"/></svg><span><%= ticket.ticket_no %></span></div>
+      <h1 style="font-size:1.5rem"><%= ticket.subject %></h1>
+      <p class="lead"><span class="mono"><%= ticket.ticket_no %></span> · opened <%= helpers.formatDate(ticket.created_at) %> · <span class="badge is-<%= st.tone %>"><%= st.label %></span></p>
+    </div>
+  </div>
+
+  <div class="card mb-2">
+    <div class="card-body">
+      <% messages.forEach(function (m) { var mine = m.sender_role === 'user'; %>
+        <div style="display:flex;gap:.75rem;margin-bottom:1rem;align-items:flex-start">
+          <span class="avatar" style="background:<%= mine ? 'var(--green-100)' : 'var(--surface-3)' %>;color:<%= mine ? 'var(--green-800)' : 'var(--muted)' %>"><%= helpers.initials(m.sender_name) %></span>
+          <div style="flex:1;min-width:0">
+            <div class="flex" style="gap:.5rem"><b class="small"><%= m.sender_name %></b>
+              <span class="badge is-<%= mine ? 'neutral' : 'info' %>"><%= mine ? 'You' : 'Claims desk' %></span>
+              <span class="small text-muted"><%= helpers.timeAgo(m.created_at) %></span>
+            </div>
+            <div class="soft mt-1" style="white-space:pre-line"><%= m.message %></div>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+
+  <% if (ticket.status !== 'closed') { %>
+    <div class="card">
+      <div class="card-head"><h3>Reply</h3></div>
+      <div class="card-body">
+        <form action="/app/support/<%= ticket.id %>/reply" method="post" class="form-grid">
+          <div class="field">
+            <textarea class="textarea" name="message" required placeholder="Add more details or answer the claims desk…"></textarea>
+          </div>
+          <div class="row-between">
+            <a class="btn btn-ghost btn-sm" href="/app/support">All tickets</a>
+            <button class="btn btn-primary" type="submit">Send reply</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  <% } %>
+</main>
+
+<%- include('../partials/footer') %>

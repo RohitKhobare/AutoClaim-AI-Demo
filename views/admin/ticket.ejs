@@ -1,0 +1,56 @@
+<%- include('../partials/admin-start') %>
+
+<% var st = helpers.TICKET_STATUS[ticket.status]; %>
+<div class="page-head">
+  <div>
+    <div class="breadcrumb"><a href="/admin/tickets">Tickets</a><svg class="icon"><use href="#i-chevron-right"/></svg><span><%= ticket.ticket_no %></span></div>
+    <h1 style="font-size:1.3rem"><%= ticket.subject %></h1>
+    <p class="lead"><%= ticket.customer %> · <%= ticket.email %> · <span class="badge is-<%= st.tone %>"><%= st.label %></span></p>
+  </div>
+  <a class="btn btn-outline btn-sm" href="/admin/customers/<%= ticket.user_id %>">Customer</a>
+</div>
+
+<div class="grid" style="grid-template-columns:1.5fr 1fr;gap:1.25rem;align-items:start">
+  <div class="card">
+    <div class="card-head"><h3>Conversation</h3><span class="small text-muted"><%= helpers.titleCase(ticket.category) %> · <%= helpers.titleCase(ticket.priority) %> priority</span></div>
+    <div class="card-body">
+      <% messages.forEach(function (m) { var mine = m.sender_role === 'user'; %>
+        <div style="display:flex;gap:.75rem;margin-bottom:1rem;align-items:flex-start">
+          <span class="avatar" style="background:<%= mine ? 'var(--surface-3)' : 'var(--green-100)' %>;color:<%= mine ? 'var(--muted)' : 'var(--green-800)' %>"><%= helpers.initials(m.sender_name) %></span>
+          <div style="flex:1;min-width:0">
+            <div class="flex" style="gap:.5rem"><b class="small"><%= m.sender_name %></b>
+              <span class="badge is-<%= m.sender_role === 'admin' ? 'info' : 'neutral' %>"><%= m.sender_role %></span>
+              <span class="small text-muted"><%= helpers.formatDateTime(m.created_at) %></span>
+            </div>
+            <div class="soft mt-1" style="white-space:pre-line"><%= m.message %></div>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Reply</h3></div>
+    <div class="card-body">
+      <form action="/admin/tickets/<%= ticket.id %>/reply" method="post" class="form-grid">
+        <div class="field">
+          <label for="message">Message to customer</label>
+          <textarea class="textarea" id="message" name="message" required style="min-height:140px" placeholder="Explain the resolution, next step or information required."></textarea>
+        </div>
+        <div class="field">
+          <label for="status">Set status</label>
+          <select class="select" id="status" name="status">
+            <option value="in_progress" <%= ticket.status === 'in_progress' ? 'selected' : '' %>>In progress</option>
+            <option value="resolved" <%= ticket.status === 'resolved' ? 'selected' : '' %>>Resolved</option>
+            <option value="closed" <%= ticket.status === 'closed' ? 'selected' : '' %>>Closed</option>
+            <option value="open" <%= ticket.status === 'open' ? 'selected' : '' %>>Open</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit"><svg class="icon"><use href="#i-message"/></svg> Send reply</button>
+        <p class="hint mb-0">The customer receives a notification and can reply from their panel.</p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/admin-end') %>

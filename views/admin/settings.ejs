@@ -1,0 +1,70 @@
+<%- include('../partials/admin-start') %>
+
+<div class="page-head">
+  <div><h1 style="font-size:1.35rem">AI settings</h1><p class="lead">Decision thresholds used by the verification engine and platform contact details.</p></div>
+</div>
+
+<div class="grid" style="grid-template-columns:1.2fr .8fr;gap:1.25rem;align-items:start">
+  <form action="/admin/settings" method="post" class="card">
+    <div class="card-head"><h3>Decision thresholds</h3><span class="badge is-info">Applied on next analysis</span></div>
+    <div class="card-body form-grid">
+      <div class="field">
+        <label for="auto_approve_confidence">Auto-approval confidence (%)</label>
+        <input class="input" id="auto_approve_confidence" name="auto_approve_confidence" type="number" min="50" max="99" value="<%= settings.auto_approve_confidence || 88 %>">
+        <span class="hint">A claim is recommended for auto-approval only when the composite confidence is at least this value.</span>
+      </div>
+      <div class="field">
+        <label for="max_fraud_score">Maximum fraud score for auto-approval (0–1)</label>
+        <input class="input" id="max_fraud_score" name="max_fraud_score" type="number" min="0" max="1" step="0.01" value="<%= settings.max_fraud_score || 0.28 %>">
+        <span class="hint">Higher values let more medium-risk claims through automatically.</span>
+      </div>
+      <div class="field">
+        <label for="max_image_ai_probability">Maximum image AI probability (%)</label>
+        <input class="input" id="max_image_ai_probability" name="max_image_ai_probability" type="number" min="1" max="60" value="<%= settings.max_image_ai_probability || 22 %>">
+        <span class="hint">Above this, the claim is treated as suspicious evidence regardless of other scores.</span>
+      </div>
+      <div class="field">
+        <label for="claim_intimation_window_hours">Claim intimation window (hours)</label>
+        <input class="input" id="claim_intimation_window_hours" name="claim_intimation_window_hours" type="number" min="12" max="168" value="<%= settings.claim_intimation_window_hours || 48 %>">
+        <span class="hint">Used by the fraud engine to flag late reporting.</span>
+      </div>
+
+      <div class="divider"></div>
+      <div class="grid grid-2" style="gap:.8rem">
+        <div class="field"><label for="support_phone">Support phone</label><input class="input" id="support_phone" name="support_phone" value="<%= settings.support_phone || contact.phone %>"></div>
+        <div class="field"><label for="support_email">Support email</label><input class="input" id="support_email" name="support_email" value="<%= settings.support_email || contact.email %>"></div>
+      </div>
+
+      <button class="btn btn-primary" type="submit">Save settings</button>
+    </div>
+  </form>
+
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><h3>How the decision is made</h3></div>
+      <div class="card-body small">
+
+        <div class="stack-sm">
+          <div class="row-between"><span class="text-muted">Not covered by policy</span><b class="impact-neg">Reject</b></div>
+          <div class="row-between"><span class="text-muted">Image AI &gt; 1.8 × threshold or fraud &gt; 0.60</span><b class="impact-neg">Fraud suspected</b></div>
+          <div class="row-between"><span class="text-muted">All checks inside thresholds</span><b class="impact-pos">Auto approve</b></div>
+          <div class="row-between"><span class="text-muted">Anything else</span><b>Manual review</b></div>
+        </div>
+        <div class="divider"></div>
+        <p class="text-muted mb-0">Every claim — including auto-approve recommendations — still reaches a human adjuster before settlement. The recommendation only prioritises the queue.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Environment</h3></div>
+      <div class="card-body small">
+        <div class="row-between"><span class="text-muted">Database</span><b class="mono">MySQL · <%= helpers.config.db.database %></b></div>
+        <div class="row-between mt-1"><span class="text-muted">Payment gateway</span><b><%= razorpayDemo ? 'Demo (no keys)' : 'Razorpay' %></b></div>
+        <div class="row-between mt-1"><span class="text-muted">Upload limit</span><b><%= Math.round(helpers.config.maxUploadBytes / 1024 / 1024) %> MB</b></div>
+        <div class="row-between mt-1"><span class="text-muted">App version</span><b>v<%= version %></b></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/admin-end') %>

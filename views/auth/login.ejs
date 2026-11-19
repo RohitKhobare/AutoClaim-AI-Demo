@@ -1,0 +1,69 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main>
+  <div class="auth-wrap">
+    <aside class="auth-side">
+      <div>
+        <a class="brand" href="/" style="color:#fff">
+          <span class="brand-mark" style="background:rgba(255,255,255,.1)"><svg class="icon"><use href="#i-shield"/></svg></span>
+          <span class="brand-text"><span class="brand-name">AutoClaim AI</span><span class="brand-sub" style="color:rgba(255,255,255,.55)"><%= t('brand.tagline') %></span></span>
+        </a>
+        <h2 class="mt-4">Every claim, verified in seconds — and fully explained.</h2>
+        <p class="lead">Documents, photographs, damage assessment, coverage and fraud risk are checked before a human adjuster takes the decision.</p>
+        <div class="auth-points">
+          <div><svg class="icon"><use href="#i-check-circle"/></svg><span>OCR extraction cross-verified against your policy record</span></div>
+          <div><svg class="icon"><use href="#i-check-circle"/></svg><span>AI-image detection flags generated or edited photographs</span></div>
+          <div><svg class="icon"><use href="#i-check-circle"/></svg><span>Repair cost estimated from detected damage and your IDV</span></div>
+          <div><svg class="icon"><use href="#i-check-circle"/></svg><span>Settlement status and receipts visible in your claim timeline</span></div>
+        </div>
+      </div>
+      <div class="small" style="color:rgba(234,244,238,.5);position:relative;z-index:1">
+        Claims support · +91 <%= contact.phone %> · <%= contact.email %>
+      </div>
+    </aside>
+
+    <div class="auth-form-wrap">
+      <div class="auth-form">
+        <h1><%= t('auth.loginTitle') %></h1>
+        <p class="text-muted"><%= t('auth.loginSub') %></p>
+
+        <form action="/login" method="post" class="form-grid mt-2">
+          <input type="hidden" name="next" value="<%= next %>">
+          <div class="field">
+            <label for="email"><%= t('auth.email') %></label>
+            <div class="input-group">
+              <svg class="icon"><use href="#i-mail"/></svg>
+              <input class="input" id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com">
+            </div>
+          </div>
+          <div class="field">
+            <div class="row-between" style="align-items:center">
+              <label for="password"><%= t('auth.password') %></label>
+              <a class="small" href="/help#account"><%= t('auth.forgot') %></a>
+            </div>
+            <div class="input-group">
+              <svg class="icon"><use href="#i-lock"/></svg>
+              <input class="input" id="password" name="password" type="password" autocomplete="current-password" required placeholder="••••••••">
+            </div>
+          </div>
+          <button class="btn btn-primary btn-lg btn-block" type="submit"><%= t('auth.signIn') %></button>
+        </form>
+
+        <div class="demo-box mt-3">
+          <div class="fw-600 mb-1" style="font-size:.8rem"><%= t('auth.demoTitle') %> · <span class="text-muted"><%= t('auth.demoNote') %> <code><%= helpers.config.demoPassword %></code></span></div>
+          <div class="row-between" style="padding:.3rem 0"><span><%= t('auth.customerDemo') %></span><code>rohit@autoclaim.ai</code></div>
+          <div class="row-between" style="padding:.3rem 0"><span><%= t('auth.adminDemo') %></span><code>admin@autoclaim.ai</code></div>
+        </div>
+
+        <p class="small text-muted text-center mt-3">
+          <%= t('auth.noAccount') %> <a href="/register"><%= t('nav.register') %></a>
+        </p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="/js/app.js" defer></script>
+</body>
+</html>

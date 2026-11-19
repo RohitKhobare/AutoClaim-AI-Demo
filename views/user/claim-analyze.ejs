@@ -1,0 +1,52 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main class="container container-narrow" style="padding-top:2rem;padding-bottom:2rem">
+  <div class="card">
+    <div class="card-body">
+      <div class="row-between">
+        <div>
+          <span class="eyebrow"><svg class="icon" style="width:13px;height:13px"><use href="#i-cpu"/></svg> AI verification</span>
+          <h1 style="font-size:1.6rem;margin-top:.6rem">Verifying <%= claim.claim_number %></h1>
+          <p class="text-muted mb-0"><%= claim.description.slice(0, 110) %><%= claim.description.length > 110 ? '…' : '' %></p>
+        </div>
+        <div class="text-right">
+          <div class="stat-value" style="font-size:1.6rem" data-analyze-pct>0%</div>
+          <div class="small text-muted"><span data-analyze-timer>0.0s</span> elapsed</div>
+        </div>
+      </div>
+
+      <div class="analyze-steps">
+        <% [
+          ['scan', 'OCR & document extraction', images.length + ' photo(s), ' + documents.length + ' document(s)'],
+          ['sparkles', 'AI-generated image detection', 'Vision transformer forensics'],
+          ['car', 'Vehicle classification', 'CNN brand / model / year match'],
+          ['camera', 'Damage detection', 'YOLOv11 localisation'],
+          ['gauge', 'Severity analysis', 'Minor → total loss scoring'],
+          ['rupee', 'Repair cost estimation', 'Parts, labour, paint, other'],
+          ['file-check', 'Coverage retrieval (RAG)', 'Policy clause search'],
+          ['shield', 'Fraud & decision engine', 'Risk score + explainable recommendation']
+        ].forEach(function (s) { %>
+          <div class="as-row" data-as>
+            <span class="as-ico"><svg class="icon" style="width:16px;height:16px"><use href="#i-<%= s[0] %>"/></svg></span>
+            <div>
+              <div class="fw-600"><%= s[1] %></div>
+              <div class="small text-muted"><%= s[2] %></div>
+            </div>
+            <span class="as-state">Queued</span>
+          </div>
+        <% }); %>
+      </div>
+
+      <div class="note-box is-info small">
+        This is a demonstration pipeline running deterministic verification models on the server. Do not close this page — you will be redirected to the full claim report.
+      </div>
+    </div>
+  </div>
+
+  <form action="/app/claims/<%= claim.id %>/analyze" method="post" data-analyze>
+    <noscript><button class="btn btn-primary btn-block mt-2" type="submit">Run verification</button></noscript>
+  </form>
+</main>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,61 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main class="container" style="padding-top:1.75rem;padding-bottom:2rem">
+  <div class="page-head">
+    <div>
+      <div class="breadcrumb"><a href="/app">Dashboard</a><svg class="icon"><use href="#i-chevron-right"/></svg><span>Policies</span></div>
+      <h1>My policies</h1>
+      <p class="lead">Cover, IDV, add-ons and the clause text used by the coverage agent.</p>
+    </div>
+  </div>
+
+  <% if (!policies.length) { %>
+    <div class="card"><div class="empty">
+      <svg class="icon"><use href="#i-shield"/></svg>
+      <h4>No policies linked</h4>
+      <p>Policies are issued by the insurer and linked to your vehicles. Contact the claims desk if a policy is missing.</p>
+      <a class="btn btn-outline btn-sm" href="/contact">Contact support</a>
+    </div></div>
+  <% } %>
+
+  <div class="grid grid-2">
+    <% policies.forEach(function (p) { var active = p.status === 'active'; var days = Number(p.days_left); %>
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="mono small text-muted"><%= p.policy_number %></div>
+            <h3><%= p.make %> <%= p.model %></h3>
+            <div class="mono small" style="color:var(--muted);letter-spacing:.06em"><%= p.registration_no %></div>
+          </div>
+          <span class="badge is-<%= active ? 'success' : 'danger' %>"><%= helpers.titleCase(p.status) %></span>
+        </div>
+        <div class="card-body">
+          <div class="grid grid-3" style="gap:.9rem">
+            <div><div class="small text-muted">Cover</div><b class="small"><%= helpers.POLICY_TYPE_LABELS[p.policy_type] %></b></div>
+            <div><div class="small text-muted">IDV</div><b class="small"><%= helpers.formatCurrency(p.idv) %></b></div>
+            <div><div class="small text-muted">Premium</div><b class="small"><%= helpers.formatCurrency(p.premium) %></b></div>
+            <div><div class="small text-muted">Valid from</div><b class="small"><%= helpers.formatDate(p.start_date) %></b></div>
+            <div><div class="small text-muted">Valid till</div><b class="small"><%= helpers.formatDate(p.end_date) %></b></div>
+            <div><div class="small text-muted">Claims</div><b class="small"><%= p.claims_count %> · <%= helpers.formatCompactCurrency(p.settled) %> settled</b></div>
+          </div>
+          <% if (active) { %>
+            <div class="note-box <%= days < 45 ? 'is-warn' : 'is-success' %> mt-2 small">
+              <% if (days < 0) { %>Cover has expired. Claims can only be admitted for incidents before the end date.
+              <% } else if (days < 45) { %>Renewal due in <%= days %> days. Renew early to keep your no-claim bonus.
+              <% } else { %><%= days %> days of cover remaining.<% } %>
+            </div>
+          <% } else { %>
+            <div class="note-box is-danger mt-2 small">This policy is not active. Incidents during this period are not payable.</div>
+          <% } %>
+        </div>
+        <div class="card-foot row-between">
+          <span class="small text-muted"><%= p.insurer %></span>
+          <a class="btn btn-outline btn-sm" href="/app/policies/<%= p.id %>">View policy & clauses</a>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

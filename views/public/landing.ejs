@@ -1,0 +1,282 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div>
+          <span class="eyebrow"><svg class="icon" style="width:13px;height:13px"><use href="#i-sparkles"/></svg><%= t('hero.eyebrow') %></span>
+          <h1><%= t('hero.title') %> <em><%= t('hero.titleAccent') %></em></h1>
+          <p class="lead"><%= t('hero.subtitle') %></p>
+          <div class="hero-cta">
+            <a class="btn btn-gold btn-lg" href="<%= currentUser ? '/app/claims/new' : '/login' %>">
+              <%= t('hero.ctaPrimary') %> <svg class="icon"><use href="#i-arrow-right"/></svg>
+            </a>
+            <a class="btn btn-lg" href="#how" style="background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.25)">
+              <%= t('hero.ctaSecondary') %>
+            </a>
+          </div>
+          <div class="hero-note">
+            <svg class="icon"><use href="#i-lock"/></svg><%= t('hero.note') %>
+          </div>
+
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <b><%= helpers.formatNumber(stats.claims) %>+</b>
+              <span><%= t('hero.stat1') %></span>
+            </div>
+            <div class="hero-stat">
+              <b><%= Number(stats.avg_seconds).toFixed(1) %>s</b>
+              <span><%= t('hero.stat2') %></span>
+            </div>
+            <div class="hero-stat">
+              <b><%= helpers.formatCompactCurrency(stats.payout) %></b>
+              <span><%= t('hero.stat3') %></span>
+            </div>
+            <div class="hero-stat">
+              <b>3</b>
+              <span><%= t('hero.stat4') %></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mock-wrap">
+          <div class="mock-float" style="top:-18px;left:-10px">
+            <svg class="icon"><use href="#i-check-circle"/></svg> Anomaly score 0.08
+          </div>
+          <div class="claim-mock">
+            <div class="claim-mock-head">
+              <div>
+                <div class="claim-mock-title"><%= t('hero.cardTitle') %></div>
+                <div class="small" style="color:#6b7a71">Hyundai Creta · MH12AB1234</div>
+              </div>
+              <span class="claim-mock-badge"><%= t('hero.cardStatus') %></span>
+            </div>
+            <div class="claim-mock-steps">
+              <div class="cm-step">
+                <span class="tick"><svg class="icon"><use href="#i-check"/></svg></span>
+                <%= t('hero.cardStep1') %><span class="val">5/5</span>
+              </div>
+              <div class="cm-step">
+                <span class="tick"><svg class="icon"><use href="#i-check"/></svg></span>
+                <%= t('hero.cardStep2') %><span class="val">3.2%</span>
+              </div>
+              <div class="cm-step">
+                <span class="tick"><svg class="icon"><use href="#i-check"/></svg></span>
+                <%= t('hero.cardStep3') %><span class="val">YOLOv11</span>
+              </div>
+              <div class="cm-step">
+                <span class="tick"><svg class="icon"><use href="#i-check"/></svg></span>
+                <%= t('hero.cardStep4') %><span class="val">94.6%</span>
+              </div>
+            </div>
+            <div class="claim-mock-amount">
+              <div>
+                <small><%= t('hero.cardAmount') %></small>
+                <b>₹ 83,500</b>
+              </div>
+              <svg class="icon"><use href="#i-wallet"/></svg>
+            </div>
+          </div>
+          <div class="mock-float" style="bottom:-14px;right:0;animation-delay:1.2s">
+            <svg class="icon"><use href="#i-cpu"/></svg> 8 AI stages completed
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST STRIP -->
+  <div style="background:var(--surface);border-bottom:1px solid var(--border)">
+    <div class="container" style="padding-top:1rem;padding-bottom:1rem">
+      <div class="row-between" style="font-size:.78rem;color:var(--muted)">
+        <span class="flex" style="gap:.45rem"><svg class="icon" style="width:15px;height:15px;color:var(--success)"><use href="#i-check-circle"/></svg> Document OCR with policy cross-verification</span>
+        <span class="flex" style="gap:.45rem"><svg class="icon" style="width:15px;height:15px;color:var(--success)"><use href="#i-check-circle"/></svg> AI-image & deepfake detection</span>
+        <span class="flex" style="gap:.45rem"><svg class="icon" style="width:15px;height:15px;color:var(--success)"><use href="#i-check-circle"/></svg> Clause-level coverage reasoning</span>
+        <span class="flex" style="gap:.45rem"><svg class="icon" style="width:15px;height:15px;color:var(--success)"><use href="#i-check-circle"/></svg> Human adjuster on every claim</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIPELINE -->
+  <section class="section" id="pipeline">
+    <div class="container">
+      <div class="section-head center">
+        <span class="eyebrow">Pipeline</span>
+        <h2 class="mt-1"><%= t('pipeline.title') %></h2>
+        <p class="lead"><%= t('pipeline.subtitle') %></p>
+      </div>
+
+      <div class="pipeline-grid">
+        <% [
+          ['upload', 'step1'], ['scan', 'step2'], ['sparkles', 'step3'], ['car', 'step4'],
+          ['camera', 'step5'], ['gauge', 'step6'], ['rupee', 'step7'], ['file-check', 'step8']
+        ].forEach(function (s, i) { %>
+          <article class="pipe-card">
+            <span class="pipe-num"><%= i + 1 %></span>
+            <div class="pipe-icon"><svg class="icon"><use href="#i-<%= s[0] %>"/></svg></div>
+            <h4><%= t('pipeline.' + s[1] + 'Title') %></h4>
+            <p><%= t('pipeline.' + s[1] + 'Desc') %></p>
+          </article>
+        <% }); %>
+      </div>
+      <p class="text-center small text-muted mt-3"><%= t('pipeline.note') %></p>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="section" style="background:var(--surface-2);border-block:1px solid var(--border)">
+    <div class="container">
+      <div class="section-head center">
+        <span class="eyebrow">Platform</span>
+        <h2 class="mt-1"><%= t('features.title') %></h2>
+        <p class="lead"><%= t('features.subtitle') %></p>
+      </div>
+
+      <div class="grid grid-3">
+        <% [
+          ['shield', 'f1'], ['file-check', 'f2'], ['sparkles', 'f3'],
+          ['wrench', 'f4'], ['wallet', 'f5'], ['chart', 'f6']
+        ].forEach(function (f) { %>
+          <article class="feature">
+            <div class="feature-icon"><svg class="icon"><use href="#i-<%= f[0] %>"/></svg></div>
+            <h3><%= t('features.' + f[1] + 'Title') %></h3>
+            <p><%= t('features.' + f[1] + 'Desc') %></p>
+          </article>
+        <% }); %>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section" id="how">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Customer journey</span>
+        <h2 class="mt-1"><%= t('how.title') %></h2>
+        <p class="lead"><%= t('how.subtitle') %></p>
+      </div>
+
+      <div class="steps-line">
+        <% ['s1', 's2', 's3', 's4'].forEach(function (s) { %>
+          <div class="how-step">
+            <h4><%= t('how.' + s + 'Title') %></h4>
+            <p><%= t('how.' + s + 'Desc') %></p>
+          </div>
+        <% }); %>
+      </div>
+
+      <div class="card mt-4" style="overflow:hidden">
+        <div class="grid" style="grid-template-columns:1.2fr 1fr;gap:0">
+          <div class="card-body">
+            <h3 style="font-size:1.05rem">Who uses the platform</h3>
+            <div class="grid grid-3 mt-2" style="gap:.9rem">
+              <div class="soft">
+                <div class="flex" style="gap:.5rem;margin-bottom:.3rem"><svg class="icon" style="color:var(--primary)"><use href="#i-user"/></svg><b class="small">Customers</b></div>
+                <p class="small text-muted mb-0">Track policies, file claims, upload evidence and receive settlements.</p>
+              </div>
+              <div class="soft">
+                <div class="flex" style="gap:.5rem;margin-bottom:.3rem"><svg class="icon" style="color:var(--primary)"><use href="#i-user-check"/></svg><b class="small">Adjusters</b></div>
+                <p class="small text-muted mb-0">Review AI evidence, override assessments and approve or reject.</p>
+              </div>
+              <div class="soft">
+                <div class="flex" style="gap:.5rem;margin-bottom:.3rem"><svg class="icon" style="color:var(--primary)"><use href="#i-chart"/></svg><b class="small">Administrators</b></div>
+                <p class="small text-muted mb-0">Manage the customer dataset, policies, payouts and platform settings.</p>
+              </div>
+            </div>
+            <a class="btn btn-primary mt-3" href="<%= currentUser ? '/app/claims/new' : '/register' %>"><%= t('how.cta') %> <svg class="icon"><use href="#i-arrow-right"/></svg></a>
+          </div>
+          <div style="background:linear-gradient(150deg,#0f5132,#06281c);color:#eaf4ee;padding:1.6rem;display:flex;flex-direction:column;justify-content:center;gap:.9rem">
+            <div class="flex" style="gap:.6rem;align-items:flex-start">
+              <svg class="icon" style="color:#8fd3ac;flex:none"><use href="#i-clock"/></svg>
+              <div><b class="small">Average AI verification</b><div class="small" style="opacity:.7"><%= Number(stats.avg_seconds).toFixed(1) %> seconds across <%= helpers.formatNumber(stats.claims) %> claims</div></div>
+            </div>
+            <div class="flex" style="gap:.6rem;align-items:flex-start">
+              <svg class="icon" style="color:#8fd3ac;flex:none"><use href="#i-shield"/></svg>
+              <div><b class="small">Human decision, always</b><div class="small" style="opacity:.7">AI recommends with evidence; an adjuster settles.</div></div>
+            </div>
+            <div class="flex" style="gap:.6rem;align-items:flex-start">
+              <svg class="icon" style="color:#8fd3ac;flex:none"><use href="#i-globe"/></svg>
+              <div><b class="small">English · हिन्दी · मराठी</b><div class="small" style="opacity:.7">Switch language any time from the header.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECURITY -->
+  <section class="section security-band" id="security">
+    <div class="container">
+      <div class="grid grid-2" style="gap:2.5rem;align-items:center">
+        <div>
+          <span class="eyebrow">Integrity</span>
+          <h2 class="mt-1"><%= t('security.title') %></h2>
+          <p class="lead"><%= t('security.subtitle') %></p>
+          <div class="flex mt-2">
+            <a class="btn btn-gold" href="/about">Read the architecture <svg class="icon"><use href="#i-arrow-right"/></svg></a>
+          </div>
+        </div>
+        <div class="sec-list">
+          <% ['p1', 'p2', 'p3', 'p4'].forEach(function (p) { %>
+            <div class="sec-item">
+              <svg class="icon"><use href="#i-check-circle"/></svg>
+              <span><%= t('security.' + p) %></span>
+            </div>
+          <% }); %>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section" id="faq">
+    <div class="container">
+      <div class="grid grid-2" style="gap:3rem;align-items:start">
+        <div>
+          <span class="eyebrow">FAQ</span>
+          <h2 class="mt-1"><%= t('faq.title') %></h2>
+          <p class="lead"><%= t('faq.subtitle') %></p>
+          <div class="card card-pad mt-3">
+            <div class="flex" style="gap:.6rem;margin-bottom:.6rem"><svg class="icon" style="color:var(--primary)"><use href="#i-message"/></svg><b>Still need help?</b></div>
+            <p class="small text-muted">Talk to the claims desk — real people, real answers.</p>
+            <div class="stack-sm small">
+              <a class="flex" href="tel:<%= contact.phone %>" style="gap:.5rem"><svg class="icon" style="width:15px;height:15px"></svg><svg class="icon" style="width:15px;height:15px"><use href="#i-phone"/></svg> +91 <%= contact.phone %></a>
+              <a class="flex" href="mailto:<%= contact.email %>" style="gap:.5rem"><svg class="icon" style="width:15px;height:15px"><use href="#i-mail"/></svg> <%= contact.email %></a>
+            </div>
+            <a class="btn btn-outline btn-sm mt-2" href="/contact"><%= t('nav.contact') %></a>
+          </div>
+        </div>
+
+        <div class="stack-sm">
+          <% [1, 2, 3, 4, 5, 6].forEach(function (n, i) { %>
+            <details class="faq-item" <%= i === 0 ? 'open' : '' %>>
+              <summary><%= t('faq.q' + n) %></summary>
+              <p><%= t('faq.a' + n) %></p>
+            </details>
+          <% }); %>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section-sm">
+    <div class="container">
+      <div class="cta-band">
+        <div>
+          <h2><%= t('cta.title') %></h2>
+          <p><%= t('cta.subtitle') %></p>
+        </div>
+        <div class="flex" style="gap:.6rem;position:relative;z-index:1">
+          <a class="btn btn-gold btn-lg" href="/login"><%= t('cta.button') %></a>
+          <a class="btn btn-lg" href="/verify-policy" style="background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.28)"><%= t('cta.secondary') %></a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

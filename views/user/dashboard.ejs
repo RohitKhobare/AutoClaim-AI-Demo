@@ -1,0 +1,181 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main class="container" style="padding-top:1.75rem;padding-bottom:2rem">
+  <div class="page-head">
+    <div>
+      <div class="breadcrumb"><a href="/">Home</a><svg class="icon"><use href="#i-chevron-right"/></svg><span>Dashboard</span></div>
+      <h1><%= t('common.welcome') %>, <%= currentUser.full_name.split(' ')[0] %></h1>
+      <p class="lead">Your policies, claims and settlement status in one place.</p>
+    </div>
+    <div class="flex">
+      <a class="btn btn-outline" href="/app/vehicles"><svg class="icon"><use href="#i-car"/></svg> <%= t('nav.vehicles') %></a>
+      <a class="btn btn-primary" href="/app/claims/new"><svg class="icon"><use href="#i-plus"/></svg> New claim</a>
+    </div>
+  </div>
+
+  <!-- stats -->
+  <div class="grid grid-4 mb-3">
+    <div class="stat">
+      <div class="stat-label">Active policies</div>
+      <div class="stat-value"><%= stats.active_policies %></div>
+      <div class="stat-sub"><%= stats.vehicles %> vehicle<%= stats.vehicles === 1 ? '' : 's' %> on record</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Open claims</div>
+      <div class="stat-value <%= Number(stats.open_claims) > 0 ? '' : 'pos' %>"><%= stats.open_claims %></div>
+      <div class="stat-sub">of <%= stats.total_claims %> total claims</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Settled</div>
+      <div class="stat-value pos"><%= helpers.formatCompactCurrency(stats.settled_amount) %></div>
+      <div class="stat-sub">received in your account</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Awaiting payout</div>
+      <div class="stat-value"><%= helpers.formatCompactCurrency(stats.awaiting_amount) %></div>
+      <div class="stat-sub">approved, not yet paid</div>
+    </div>
+  </div>
+
+  <% var pendingPayout = claims.filter(function (c) { return c.status === 'approved'; })[0]; %>
+  <% if (pendingPayout) { %>
+    <div class="note-box is-success mb-3" style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
+      <svg class="icon"><use href="#i-wallet"/></svg>
+      <div class="flex-1"><b>Your claim <%= pendingPayout.claim_number %> is approved.</b> Complete the settlement to receive <%= helpers.formatCurrency(pendingPayout.approved_amount) %>.</div>
+      <a class="btn btn-primary btn-sm" href="/app/claims/<%= pendingPayout.id %>/pay">Receive settlement</a>
+    </div>
+  <% } %>
+
+  <div class="grid" style="grid-template-columns:1fr 340px;gap:1.25rem;align-items:start">
+    <div class="stack">
+      <div class="card">
+        <div class="card-head">
+          <h3>Recent claims</h3>
+          <a class="small" href="/app/claims"><%= t('common.viewAll') %> →</a>
+        </div>
+        <% if (!claims.length) { %>
+          <div class="empty">
+            <svg class="icon"><use href="#i-clipboard"/></svg>
+            <h4>No claims yet</h4>
+            <p>When something happens, capture photos at the spot and file a claim here.</p>
+            <a class="btn btn-primary btn-sm" href="/app/claims/new">File your first claim</a>
+          </div>
+        <% } else { %>
+          <div class="table-wrap" style="border:0;border-radius:0">
+            <table class="table">
+              <thead><tr><th>Claim</th><th>Vehicle</th><th>Reported</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody>
+                <% claims.forEach(function (c) { var sm = helpers.statusMeta(c.status); %>
+                  <tr>
+                    <td>
+                      <a href="/app/claims/<%= c.id %>" class="mono" style="font-size:.82rem"><%= c.claim_number %></a>
+                      <div class="small text-muted"><%= helpers.formatDate(c.incident_date) %></div>
+                    </td>
+                    <td><%= c.make %> <%= c.model %><div class="small text-muted mono"><%= c.registration_no %></div></td>
+                    <td class="small text-muted"><%= helpers.timeAgo(c.created_at) %></td>
+                    <td class="num"><%= helpers.formatCurrency(c.approved_amount || c.reported_amount) %></td>
+                    <td><span class="badge is-<%= sm.tone %>"><%= sm.label %></span></td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>My garage</h3>
+          <a class="small" href="/app/vehicles">Manage →</a>
+        </div>
+        <div class="card-body">
+          <% if (!vehicles.length) { %>
+            <div class="empty" style="padding:1.5rem">
+              <p>No vehicles added yet.</p>
+              <a class="btn btn-outline btn-sm" href="/app/vehicles">Add a vehicle</a>
+            </div>
+          <% } else { %>
+            <div class="grid grid-2" style="gap:.85rem">
+              <% vehicles.forEach(function (v) { var active = v.policy_status === 'active'; %>
+                <a class="soft" href="/app/vehicles" style="text-decoration:none;color:inherit;display:block">
+                  <div class="row-between" style="align-items:flex-start">
+                    <div>
+                      <b><%= v.make %> <%= v.model %></b>
+                      <div class="small text-muted"><%= v.year %> · <%= helpers.titleCase(v.fuel_type) %> · <%= helpers.formatNumber(v.odometer_km) %> km</div>
+                    </div>
+                    <span class="badge is-<%= active ? 'success' : 'danger' %>"><%= active ? 'Active' : (v.policy_status || 'No policy') %></span>
+                  </div>
+                  <div class="mono mt-1" style="font-size:.82rem;letter-spacing:.05em"><%= v.registration_no %></div>
+                  <div class="small text-muted mt-1">
+                    <% if (v.policy_number) { %>Policy <%= v.policy_number %> · till <%= helpers.formatDate(v.end_date) %><% } else { %>No policy linked<% } %>
+                  </div>
+                </a>
+              <% }); %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="stack">
+      <% if (policy) { %>
+        <div class="card card-accent">
+          <div class="card-body">
+            <div class="small text-muted">Next renewal</div>
+            <h3 class="mt-1" style="font-size:1rem"><%= policy.make %> <%= policy.model %></h3>
+            <div class="mono small text-muted"><%= policy.registration_no %> · <%= policy.policy_number %></div>
+            <div class="flex mt-2" style="justify-content:space-between">
+              <div>
+                <div class="stat-value" style="font-size:1.4rem"><%= policy.days_left %></div>
+                <div class="small text-muted">days left</div>
+              </div>
+              <div class="text-right">
+                <div class="small text-muted">Expires</div>
+                <b class="small"><%= helpers.formatDate(policy.end_date) %></b>
+              </div>
+            </div>
+            <div class="meter mt-2"><span style="width:<%= Math.max(6, Math.min(100, 100 - (policy.days_left / 365) * 100)) %>%"></span></div>
+            <a class="btn btn-outline btn-sm btn-block mt-2" href="/app/policies/<%= policy.id %>">View policy</a>
+          </div>
+        </div>
+      <% } %>
+
+      <div class="card">
+        <div class="card-head"><h3>Quick actions</h3></div>
+        <div class="card-body stack-sm">
+          <a class="btn btn-primary btn-block" href="/app/claims/new"><svg class="icon"><use href="#i-camera"/></svg> File a new claim</a>
+          <a class="btn btn-outline btn-block" href="/app/policies"><svg class="icon"><use href="#i-shield"/></svg> My policies</a>
+          <a class="btn btn-outline btn-block" href="/app/support"><svg class="icon"><use href="#i-message"/></svg> Get help</a>
+          <a class="btn btn-ghost btn-block" href="/verify-policy"><svg class="icon"><use href="#i-search"/></svg> Check a policy status</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Notifications</h3>
+          <a class="small" href="/app/notifications"><%= t('common.viewAll') %></a>
+        </div>
+        <div class="card-body" style="padding-top:.6rem">
+          <% if (!notifications.length) { %>
+            <p class="small text-muted mb-0">Nothing yet.</p>
+          <% } else { %>
+            <% notifications.forEach(function (n) { %>
+              <a class="doc-row" href="/app/notifications/<%= n.id %>/open" style="text-decoration:none;color:inherit;align-items:flex-start">
+                <span class="doc-icon"><svg class="icon"><use href="#i-<%= n.icon || 'bell' %>"/></svg></span>
+                <div style="min-width:0">
+                  <div class="small fw-600 truncate"><%= n.title %></div>
+                  <div class="small text-muted" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden"><%= n.body %></div>
+                  <div class="small text-muted"><%= helpers.timeAgo(n.created_at) %></div>
+                </div>
+                <% if (!n.read_at) { %><span class="badge is-info" style="margin-left:auto">New</span><% } %>
+              </a>
+            <% }); %>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

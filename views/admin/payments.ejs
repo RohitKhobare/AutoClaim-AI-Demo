@@ -1,0 +1,40 @@
+<%- include('../partials/admin-start') %>
+
+<div class="page-head">
+  <div><h1 style="font-size:1.35rem">Payments</h1><p class="lead">Settlement orders, payout references and gateway mode.</p></div>
+  <span class="badge is-<%= razorpayDemo ? 'warn' : 'success' %>"><%= razorpayDemo ? 'Demo gateway' : 'Razorpay configured' %></span>
+</div>
+
+<div class="grid grid-3 mb-3">
+  <div class="stat"><div class="stat-label">Paid out</div><div class="stat-value pos"><%= helpers.formatCompactCurrency(totals.paid) %></div><div class="stat-sub">settled to customers</div></div>
+  <div class="stat"><div class="stat-label">Awaiting completion</div><div class="stat-value"><%= helpers.formatCompactCurrency(totals.pending) %></div><div class="stat-sub">orders created, not confirmed</div></div>
+  <div class="stat"><div class="stat-label">Transactions</div><div class="stat-value"><%= totals.count %></div><div class="stat-sub"><%= razorpayDemo ? 'simulated in demo mode' : 'Razorpay live/test' %></div></div>
+</div>
+
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Order</th><th>Claim</th><th>Customer</th><th>Gateway</th><th>Method</th><th class="num">Amount</th><th>Status</th><th>Created</th><th>Paid</th></tr></thead>
+    <tbody>
+      <% if (!payments.length) { %><tr><td colspan="9"><div class="empty" style="padding:2rem"><p class="mb-0">No payments recorded yet.</p></div></td></tr><% } %>
+      <% payments.forEach(function (p) { %>
+        <tr>
+          <td class="mono small"><%= p.order_id %><div class="small text-muted"><%= p.payment_id || '' %></div></td>
+          <td class="small"><a class="mono" href="/admin/claims/<%= p.claim_id %>"><%= p.claim_number %></a></td>
+          <td class="small"><%= p.customer %></td>
+          <td class="small"><span class="badge is-neutral"><%= p.gateway %></span></td>
+          <td class="small"><%= p.method || '—' %></td>
+          <td class="num small"><%= helpers.formatCurrency(p.amount) %></td>
+          <td><span class="badge is-<%= p.status === 'paid' ? 'success' : p.status === 'failed' ? 'danger' : 'warn' %>"><%= helpers.titleCase(p.status) %></span></td>
+          <td class="small text-muted"><%= helpers.formatDate(p.created_at) %></td>
+          <td class="small text-muted"><%= p.paid_at ? helpers.formatDate(p.paid_at) : '—' %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<div class="note-box is-info mt-3 small">
+  Settlement runs through Razorpay when <code>RAZORPAY_KEY_ID</code> and <code>RAZORPAY_KEY_SECRET</code> are set in <code>.env</code>; otherwise the app uses the clearly-labelled demo gateway. Adjusters can also record an offline NEFT payout from a claim page.
+</div>
+
+<%- include('../partials/admin-end') %>

@@ -1,0 +1,75 @@
+<%- include('../partials/admin-start') %>
+
+<div class="page-head">
+  <div>
+    <div class="breadcrumb"><a href="/admin/customers">Customers</a><svg class="icon"><use href="#i-chevron-right"/></svg><span><%= customer.full_name %></span></div>
+    <h1 style="font-size:1.35rem"><%= customer.full_name %> <span class="badge is-<%= customer.is_active ? 'success' : 'neutral' %>"><%= customer.is_active ? 'Active' : 'Disabled' %></span></h1>
+    <p class="lead"><%= customer.email %> · <%= customer.phone %> · <%= customer.city || '—' %></p>
+  </div>
+  <div class="flex">
+    <a class="btn btn-outline btn-sm" href="/admin/claims/new">Register a claim</a>
+    <form action="/admin/customers/<%= customer.id %>/toggle" method="post" class="inline">
+      <button class="btn btn-ghost btn-sm" type="submit" data-confirm="<%= customer.is_active ? 'Deactivate' : 'Reactivate' %> this account?"><%= customer.is_active ? 'Disable account' : 'Enable account' %></button>
+    </form>
+  </div>
+</div>
+
+<div class="grid grid-3 mb-3">
+  <div class="stat"><div class="stat-label">Vehicles</div><div class="stat-value"><%= vehicles.length %></div></div>
+  <div class="stat"><div class="stat-label">Policies</div><div class="stat-value"><%= policies.filter(function (p) { return p.status === 'active'; }).length %> <span class="small text-muted">active / <%= policies.length %></span></div></div>
+  <div class="stat"><div class="stat-label">Claims</div><div class="stat-value"><%= claims.length %></div><div class="stat-sub"><%= helpers.formatCompactCurrency(claims.reduce(function (s, c) { return s + Number(c.approved_amount || 0); }, 0)) %> approved</div></div>
+</div>
+
+<div class="grid" style="grid-template-columns:1fr 1fr;gap:1.25rem;align-items:start">
+  <div class="card">
+    <div class="card-head"><h3>Vehicles</h3></div>
+    <div class="card-body">
+      <% if (!vehicles.length) { %><p class="small text-muted mb-0">No vehicles.</p><% } %>
+      <% vehicles.forEach(function (v) { %>
+        <div class="doc-row">
+          <span class="doc-icon"><svg class="icon"><use href="#i-car"/></svg></span>
+          <div class="flex-1"><div class="small fw-600"><%= v.make %> <%= v.model %></div><div class="small text-muted mono"><%= v.registration_no %> · <%= v.year %> · <%= helpers.titleCase(v.fuel_type) %></div></div>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Policies</h3><a class="small" href="/admin/policies">Manage →</a></div>
+    <div class="card-body">
+      <% if (!policies.length) { %><p class="small text-muted mb-0">No policies.</p><% } %>
+      <% policies.forEach(function (p) { %>
+        <div class="doc-row">
+          <span class="doc-icon"><svg class="icon"><use href="#i-shield"/></svg></span>
+          <div class="flex-1"><div class="small fw-600 mono"><%= p.policy_number %></div><div class="small text-muted"><%= p.registration_no %> · <%= helpers.POLICY_TYPE_LABELS[p.policy_type] %> · till <%= helpers.formatDate(p.end_date) %></div></div>
+          <span class="badge is-<%= p.status === 'active' ? 'success' : 'danger' %>"><%= helpers.titleCase(p.status) %></span>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-head"><h3>Claim history</h3></div>
+  <div class="table-wrap" style="border:0">
+    <table class="table">
+      <thead><tr><th>Claim</th><th>Vehicle</th><th>Incident</th><th class="num">Claimed</th><th class="num">Approved</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <% if (!claims.length) { %><tr><td colspan="7"><div class="empty" style="padding:1.5rem"><p class="mb-0">No claims filed.</p></div></td></tr><% } %>
+        <% claims.forEach(function (c) { var sm = helpers.statusMeta(c.status); %>
+          <tr>
+            <td class="mono small"><%= c.claim_number %></td>
+            <td class="mono small"><%= c.registration_no %></td>
+            <td class="small"><%= helpers.formatDate(c.incident_date) %></td>
+            <td class="num small"><%= helpers.formatCurrency(c.reported_amount) %></td>
+            <td class="num small"><%= c.approved_amount ? helpers.formatCurrency(c.approved_amount) : '—' %></td>
+            <td><span class="badge is-<%= sm.tone %>"><%= sm.label %></span></td>
+            <td class="text-right"><a class="small" href="/admin/claims/<%= c.id %>">Open</a></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/admin-end') %>

@@ -1,0 +1,76 @@
+<%- include('../partials/admin-start') %>
+
+<div class="page-head">
+  <div><h1 style="font-size:1.35rem">Vehicles</h1><p class="lead"><%= vehicles.length %> vehicles on record, linked to their latest policy.</p></div>
+  <a class="btn btn-outline btn-sm" href="/admin/import"><svg class="icon"><use href="#i-database"/></svg> Import CSV</a>
+</div>
+
+<div class="grid" style="grid-template-columns:1fr 340px;gap:1.25rem;align-items:start">
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Registration</th><th>Vehicle</th><th>Owner</th><th>Policy</th><th class="num">Claims</th><th></th></tr></thead>
+      <tbody>
+        <% vehicles.forEach(function (v) { %>
+          <tr>
+            <td class="mono strong small"><%= v.registration_no %></td>
+            <td class="small"><%= v.make %> <%= v.model %><div class="small text-muted"><%= v.year %> · <%= helpers.titleCase(v.fuel_type) %></div></td>
+            <td class="small"><%= v.owner %><div class="small text-muted"><%= v.email %></div></td>
+            <td class="small">
+              <% if (v.policy_number) { %><span class="mono"><%= v.policy_number %></span>
+                <div><span class="badge is-<%= v.policy_status === 'active' ? 'success' : 'danger' %>"><%= helpers.titleCase(v.policy_status) %></span></div>
+              <% } else { %><span class="badge is-neutral">No policy</span><% } %>
+            </td>
+            <td class="num small"><%= v.claims %></td>
+            <td class="text-right"><a class="small" href="/admin/customers/<%= v.user_id %>">Customer</a></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Add vehicle</h3></div>
+    <div class="card-body">
+      <form action="/admin/vehicles" method="post" class="form-grid">
+        <div class="field">
+          <label for="user_id">Owner <span class="req">*</span></label>
+          <select class="select" id="user_id" name="user_id" required>
+            <option value="">Select customer…</option>
+            <% customers.forEach(function (c) { %><option value="<%= c.id %>"><%= c.full_name %> · <%= c.email %></option><% }); %>
+          </select>
+        </div>
+        <div class="field"><label for="registration_no">Registration no. <span class="req">*</span></label><input class="input" id="registration_no" name="registration_no" required placeholder="MH12AB1234" style="text-transform:uppercase"></div>
+        <div class="grid grid-2" style="gap:.6rem">
+          <div class="field"><label for="make">Make <span class="req">*</span></label><input class="input" id="make" name="make" required></div>
+          <div class="field"><label for="model">Model <span class="req">*</span></label><input class="input" id="model" name="model" required></div>
+        </div>
+        <div class="grid grid-2" style="gap:.6rem">
+          <div class="field"><label for="year">Year</label><input class="input" id="year" name="year" type="number" value="2022"></div>
+          <div class="field">
+            <label for="fuel_type">Fuel</label>
+            <select class="select" id="fuel_type" name="fuel_type"><option>petrol</option><option>diesel</option><option>cng</option><option>electric</option><option>hybrid</option></select>
+          </div>
+        </div>
+        <div class="field"><label for="chassis_no">Chassis no.</label><input class="input" id="chassis_no" name="chassis_no"></div>
+
+        <div class="divider"></div>
+        <div class="small fw-600">Issue a policy (optional)</div>
+        <div class="field"><label for="policy_number">Policy number</label><input class="input" id="policy_number" name="policy_number" placeholder="POL-2026-1011"></div>
+        <div class="grid grid-2" style="gap:.6rem">
+          <div class="field">
+            <label for="policy_type">Type</label>
+            <select class="select" id="policy_type" name="policy_type"><option value="comprehensive">Comprehensive</option><option value="third_party">Third-party</option><option value="own_damage">Own damage</option></select>
+          </div>
+          <div class="field"><label for="idv">IDV</label><input class="input" id="idv" name="idv" type="number" placeholder="450000"></div>
+        </div>
+        <div class="grid grid-2" style="gap:.6rem">
+          <div class="field"><label for="start_date">Start</label><input class="input" id="start_date" name="start_date" type="date"></div>
+          <div class="field"><label for="end_date">End</label><input class="input" id="end_date" name="end_date" type="date"></div>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit">Add vehicle</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/admin-end') %>

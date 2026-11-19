@@ -1,0 +1,30 @@
+<%- include('../partials/admin-start') %>
+
+<div class="page-head">
+  <div><h1 style="font-size:1.35rem">Contact enquiries</h1><p class="lead">Messages sent from the public contact form.</p></div>
+</div>
+
+<div class="stack">
+  <% if (!messages.length) { %>
+    <div class="card"><div class="empty"><svg class="icon"><use href="#i-mail"/></svg><h4>No enquiries</h4><p class="mb-0">Messages from the contact page will appear here.</p></div></div>
+  <% } %>
+  <% messages.forEach(function (m) { %>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <h3 style="font-size:.95rem"><%= m.subject %> <span class="badge is-<%= m.status === 'new' ? 'info' : 'neutral' %>"><%= m.status %></span></h3>
+          <div class="small text-muted"><%= m.name %> · <a href="mailto:<%= m.email %>"><%= m.email %></a><%= m.phone ? ' · ' + m.phone : '' %> · <%= helpers.formatDateTime(m.created_at) %></div>
+        </div>
+        <div class="flex">
+          <a class="btn btn-outline btn-sm" href="mailto:<%= m.email %>?subject=Re: <%= encodeURIComponent(m.subject) %>"><svg class="icon"><use href="#i-mail"/></svg> Reply by email</a>
+          <% if (m.status === 'new') { %>
+            <form action="/admin/messages/<%= m.id %>/read" method="post" class="inline"><button class="btn btn-ghost btn-sm" type="submit">Mark read</button></form>
+          <% } %>
+        </div>
+      </div>
+      <div class="card-body"><p class="small mb-0" style="color:var(--text-2);white-space:pre-line"><%= m.message %></p></div>
+    </div>
+  <% }); %>
+</div>
+
+<%- include('../partials/admin-end') %>

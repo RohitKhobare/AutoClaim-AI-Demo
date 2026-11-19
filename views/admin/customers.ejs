@@ -1,0 +1,55 @@
+<%- include('../partials/admin-start') %>
+
+<div class="page-head">
+  <div><h1 style="font-size:1.35rem">Customers</h1><p class="lead">Policyholders in the insurer dataset. New accounts get the demo password.</p></div>
+  <a class="btn btn-outline btn-sm" href="/admin/import"><svg class="icon"><use href="#i-database"/></svg> Bulk import</a>
+</div>
+
+<div class="grid" style="grid-template-columns:1fr 340px;gap:1.25rem;align-items:start">
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Customer</th><th>Contact</th><th class="num">Vehicles</th><th class="num">Policies</th><th class="num">Claims</th><th>Joined</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <% customers.forEach(function (c) { %>
+          <tr>
+            <td>
+              <div class="flex" style="gap:.55rem">
+                <span class="avatar" style="width:28px;height:28px;font-size:.68rem"><%= helpers.initials(c.full_name) %></span>
+                <div><a class="strong small" href="/admin/customers/<%= c.id %>"><%= c.full_name %></a><div class="small text-muted"><%= c.city || '—' %></div></div>
+              </div>
+            </td>
+            <td class="small"><%= c.email %><div class="small text-muted"><%= c.phone %></div></td>
+            <td class="num small"><%= c.vehicles %></td>
+            <td class="num small"><%= c.active_policies %></td>
+            <td class="num small"><%= c.claims %></td>
+            <td class="small text-muted"><%= helpers.formatDate(c.created_at) %></td>
+            <td><span class="badge is-<%= c.is_active ? 'success' : 'neutral' %>"><%= c.is_active ? 'Active' : 'Disabled' %></span></td>
+            <td class="text-right">
+              <form action="/admin/customers/<%= c.id %>/toggle" method="post" class="inline">
+                <button class="btn btn-ghost btn-sm" type="submit" data-confirm="<%= c.is_active ? 'Deactivate' : 'Reactivate' %> this account?"><%= c.is_active ? 'Disable' : 'Enable' %></button>
+              </form>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Add customer</h3></div>
+    <div class="card-body">
+      <form action="/admin/customers" method="post" class="form-grid">
+        <div class="field"><label for="full_name">Full name <span class="req">*</span></label><input class="input" id="full_name" name="full_name" required></div>
+        <div class="field"><label for="email">Email <span class="req">*</span></label><input class="input" id="email" name="email" type="email" required></div>
+        <div class="field"><label for="phone">Mobile <span class="req">*</span></label><input class="input" id="phone" name="phone" maxlength="10" required></div>
+        <div class="field"><label for="city">City</label><input class="input" id="city" name="city"></div>
+        <button class="btn btn-primary btn-block" type="submit">Create customer</button>
+        <p class="hint mb-0">Temporary password: <code><%= helpers.config.demoPassword %></code></p>
+      </form>
+      <div class="divider"></div>
+      <p class="small text-muted mb-0">Policies are added from <a href="/admin/policies">Policies</a>, vehicles from <a href="/admin/vehicles">Vehicles</a>. Claims can be registered on the customer's behalf from the claims queue.</p>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/admin-end') %>

@@ -1,0 +1,124 @@
+<%- include('../partials/admin-start') %>
+
+<div class="page-head">
+  <div>
+    <h1 style="font-size:1.35rem">Register a claim manually</h1>
+    <p class="lead">Use this when a customer reports by phone or at a branch. You can run the AI verification immediately or assess it yourself.</p>
+  </div>
+  <a class="btn btn-outline btn-sm" href="/admin/claims">Back to queue</a>
+</div>
+
+<form action="/admin/claims" method="post" enctype="multipart/form-data" class="grid" style="grid-template-columns:1.5fr 1fr;gap:1.25rem;align-items:start">
+  <div class="card">
+    <div class="card-head"><h3>Incident details</h3><span class="badge is-gold">Admin entry</span></div>
+    <div class="card-body form-grid">
+      <div class="grid grid-2" style="gap:.8rem">
+        <div class="field">
+          <label for="customer">Customer <span class="req">*</span></label>
+          <select class="select" id="customer" required>
+            <option value="">Select customer…</option>
+            <% customers.forEach(function (c) { %><option value="<%= c.id %>"><%= c.full_name %> · <%= c.email %></option><% }); %>
+          </select>
+        </div>
+        <div class="field">
+          <label for="vehicle_id">Vehicle & policy <span class="req">*</span></label>
+          <select class="select" id="vehicle_id" name="vehicle_id" required>
+            <option value="">Select customer first…</option>
+            <% vehicles.forEach(function (v) { %>
+              <option value="<%= v.id %>" data-user="<%= v.user_id %>" data-policy="<%= v.policy_id || '' %>" data-policy-number="<%= v.policy_number || '' %>">
+                <%= v.registration_no %> · <%= v.make %> <%= v.model %><%= v.policy_number ? ' · ' + v.policy_number : ' · no policy' %>
+              </option>
+            <% }); %>
+          </select>
+          <span class="hint" id="policy-hint">Policy is taken from the selected vehicle.</span>
+        </div>
+      </div>
+
+      <div class="grid grid-3" style="gap:.8rem">
+        <div class="field">
+          <label for="claim_type">Claim type</label>
+          <select class="select" id="claim_type" name="claim_type">
+            <option value="own_damage">Own damage</option><option value="natural_calamity">Natural calamity</option>
+            <option value="theft">Theft</option><option value="third_party">Third-party liability</option>
+            <option value="property">Property damage</option>
+          </select>
+        </div>
+        <div class="field"><label for="incident_date">Incident date</label><input class="input" id="incident_date" name="incident_date" type="date" value="<%= today %>" max="<%= today %>"></div>
+        <div class="field"><label for="incident_time">Time</label><input class="input" id="incident_time" name="incident_time" type="time" value="12:00"></div>
+      </div>
+
+      <div class="field"><label for="location">Location <span class="req">*</span></label><input class="input" id="location" name="location" required placeholder="Where did the incident occur?"></div>
+      <div class="field"><label for="description">Description <span class="req">*</span></label><textarea class="textarea" id="description" name="description" required placeholder="Damage description as reported by the customer."></textarea></div>
+
+      <div class="grid grid-2" style="gap:.8rem">
+        <div class="field"><label for="reported_amount">Reported amount (₹)</label><input class="input" id="reported_amount" name="reported_amount" type="number" min="0" step="100" placeholder="42000"></div>
+        <div class="field"><label for="fir_number">FIR number</label><input class="input" id="fir_number" name="fir_number"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><h3>Evidence (optional)</h3></div>
+      <div class="card-body stack-sm">
+        <label class="file-drop" data-file-drop>
+          <svg class="icon"><use href="#i-camera"/></svg>
+          <div class="flex-1"><div class="fd-name" data-file-name>Accident photographs</div><div class="fd-hint">Select multiple if available</div></div>
+          <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple>
+        </label>
+        <div class="field">
+          <label for="doc_type">Document type</label>
+          <select class="select" id="doc_type" name="doc_type">
+            <option value="rc_book">RC Book</option><option value="driving_license">Driving Licence</option>
+            <option value="policy_copy">Insurance Policy</option><option value="fir">FIR</option>
+            <option value="claim_form">Claim Form</option><option value="invoice">Invoice</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <label class="file-drop" data-file-drop>
+          <svg class="icon"><use href="#i-file"/></svg>
+          <div class="flex-1"><div class="fd-name" data-file-name>Document</div><div class="fd-hint">PDF or image</div></div>
+          <input type="file" name="documents" accept="application/pdf,image/jpeg,image/png">
+        </label>
+        <input type="hidden" name="image_angle" value="front">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Processing</h3></div>
+      <div class="card-body">
+        <label class="checkline"><input type="checkbox" name="run_ai" value="1" checked> Run AI verification immediately</label>
+        <p class="hint mt-1">The claim still goes to an adjuster for the final decision. Leave unchecked to register a claim that will be assessed entirely manually.</p>
+        <button class="btn btn-primary btn-block mt-2" type="submit"><svg class="icon"><use href="#i-clipboard"/></svg> Register claim</button>
+        <a class="btn btn-ghost btn-block btn-sm mt-1" href="/admin/claims">Cancel</a>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+  (function () {
+    var customer = document.getElementById('customer');
+    var vehicle = document.getElementById('vehicle_id');
+    var hint = document.getElementById('policy-hint');
+    var allOptions = Array.prototype.slice.call(vehicle.querySelectorAll('option[data-user]'));
+    customer.addEventListener('change', function () {
+      var uid = customer.value;
+      vehicle.innerHTML = '';
+      var placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = uid ? 'Select vehicle…' : 'Select customer first…';
+      vehicle.appendChild(placeholder);
+      allOptions.filter(function (o) { return o.dataset.user === uid; }).forEach(function (o) {
+        vehicle.appendChild(o.cloneNode(true));
+      });
+    });
+    vehicle.addEventListener('change', function () {
+      var opt = vehicle.options[vehicle.selectedIndex];
+      if (!opt) return;
+      hint.textContent = opt.dataset.policyNumber ? 'Policy ' + opt.dataset.policyNumber + ' will be linked.' : 'This vehicle has no policy — add one first.';
+    });
+  })();
+</script>
+
+<%- include('../partials/admin-end') %>

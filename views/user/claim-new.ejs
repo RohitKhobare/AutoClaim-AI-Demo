@@ -1,0 +1,217 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main class="container container-narrow" style="padding-top:1.75rem;padding-bottom:2rem">
+  <div class="page-head">
+    <div>
+      <div class="breadcrumb"><a href="/app">Dashboard</a><svg class="icon"><use href="#i-chevron-right"/></svg><a href="/app/claims">Claims</a><svg class="icon"><use href="#i-chevron-right"/></svg><span>New claim</span></div>
+      <h1>File a new claim</h1>
+      <p class="lead">Photograph the damage at the spot, add the incident details and upload your documents. Verification runs as soon as you submit.</p>
+    </div>
+  </div>
+
+  <% if (!vehicles.length) { %>
+    <div class="card"><div class="empty">
+      <svg class="icon"><use href="#i-car"/></svg>
+      <h4>Add a vehicle first</h4>
+      <p>A claim must be linked to one of your vehicles and its policy.</p>
+      <a class="btn btn-primary btn-sm" href="/app/vehicles">Add a vehicle</a>
+    </div></div>
+  <% } else { %>
+
+  <div class="wizard-steps">
+    <span class="wstep active" data-dot="1"><b>1</b> Incident details</span>
+    <span class="wstep" data-dot="2"><b>2</b> Photos & documents</span>
+    <span class="wstep" data-dot="3"><b>3</b> Review & submit</span>
+  </div>
+
+  <form action="/app/claims" method="post" enctype="multipart/form-data" data-wizard novalidate>
+    <!-- STEP 1 -->
+    <section data-step="1">
+      <div class="card">
+        <div class="card-head"><h3>What happened?</h3><span class="badge is-neutral">Step 1 of 3</span></div>
+        <div class="card-body form-grid">
+          <div class="field">
+            <label for="vehicle_id">Vehicle <span class="req">*</span></label>
+            <select class="select" id="vehicle_id" name="vehicle_id" required data-vehicle-select>
+              <% vehicles.forEach(function (v) { %>
+                <option value="<%= v.id %>"
+                        data-policy="<%= v.policy_id || '' %>"
+                        data-policy-number="<%= v.policy_number || '' %>"
+                        data-policy-status="<%= v.policy_status || '' %>"
+                        data-policy-end="<%= v.end_date ? helpers.formatDate(v.end_date) : '' %>"
+                        <%= String(preselected) === String(v.id) ? 'selected' : '' %>>
+                  <%= v.registration_no %> · <%= v.make %> <%= v.model %> (<%= v.year %>)
+                </option>
+              <% }); %>
+            </select>
+            <input type="hidden" name="policy_id" data-policy-field>
+            <div class="mt-1" data-vehicle-info></div>
+          </div>
+
+          <div class="grid grid-2" style="gap:.8rem">
+            <div class="field">
+              <label for="claim_type">Type of claim</label>
+              <select class="select" id="claim_type" name="claim_type">
+                <option value="own_damage">Own damage (accident)</option>
+                <option value="natural_calamity">Natural calamity (flood, hail, storm)</option>
+                <option value="theft">Theft</option>
+                <option value="third_party">Third-party liability</option>
+                <option value="property">Property damage</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="reported_amount">Estimated repair cost (₹) <span class="req">*</span></label>
+              <input class="input" id="reported_amount" name="reported_amount" type="number" min="0" step="100" required placeholder="42000">
+              <span class="hint">Your own estimate — the AI estimate is calculated separately.</span>
+            </div>
+          </div>
+
+          <div class="grid grid-2" style="gap:.8rem">
+            <div class="field">
+              <label for="incident_date">Date of incident <span class="req">*</span></label>
+              <input class="input" id="incident_date" name="incident_date" type="date" required max="<%= today %>" value="<%= today %>">
+            </div>
+            <div class="field">
+              <label for="incident_time">Time of incident</label>
+              <input class="input" id="incident_time" name="incident_time" type="time" value="18:30">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="location">Place of incident <span class="req">*</span></label>
+            <input class="input" id="location" name="location" required placeholder="Pune–Mumbai Expressway, near Talegaon toll plaza">
+          </div>
+
+          <div class="field">
+            <label for="description">What happened? <span class="req">*</span></label>
+            <textarea class="textarea" id="description" name="description" required placeholder="Describe the incident: how it happened, what was damaged, whether anyone was injured and whether the other party stopped."></textarea>
+            <span class="hint">The description is used by the damage and fraud models. Be specific.</span>
+          </div>
+
+          <div class="field" style="max-width:320px">
+            <label for="fir_number">FIR number <span class="text-muted small">(if filed)</span></label>
+            <input class="input" id="fir_number" name="fir_number" placeholder="FIR-PN-2026-0000">
+          </div>
+        </div>
+        <div class="card-foot text-right">
+          <button class="btn btn-primary" type="button" data-next>Continue <svg class="icon"><use href="#i-arrow-right"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 2 -->
+    <section data-step="2" hidden>
+      <div class="card mb-2">
+        <div class="card-head">
+          <h3>Accident photographs</h3>
+          <span class="badge is-warn"><svg class="icon"><use href="#i-alert"/></svg> Minimum 2 photos</span>
+        </div>
+        <div class="card-body">
+          <p class="small text-muted">Photos taken at the spot verify far faster. Images are checked for AI generation, editing and compression artefacts.</p>
+          <div class="stack-sm">
+            <% [['front', 'Front view'], ['rear', 'Rear view'], ['left', 'Left side'], ['right', 'Right side'], ['closeup', 'Close-up of damage']].forEach(function (a) { %>
+              <div class="form-row" data-file-row>
+                <div>
+                  <div class="small fw-600"><%= a[1] %></div>
+                  <div class="small text-muted"><%= a[0] === 'closeup' ? 'Detail shot' : 'Full vehicle' %></div>
+                  <input type="hidden" name="image_angle" value="<%= a[0] %>">
+                </div>
+                <label class="file-drop" data-file-drop>
+                  <svg class="icon"><use href="#i-camera"/></svg>
+                  <div class="flex-1">
+                    <div class="fd-name" data-file-name>Choose photo</div>
+                    <div class="fd-hint">JPG, PNG or WEBP · max <%= Math.round(helpers.config.maxUploadBytes / 1024 / 1024) %> MB</div>
+                  </div>
+                  <svg class="icon" style="width:16px;height:16px"><use href="#i-upload"/></svg>
+                  <input type="file" name="images" accept="image/jpeg,image/png,image/webp,image/heic">
+                </label>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Documents</h3>
+          <span class="badge is-neutral">RC, licence and claim form are mandatory</span>
+        </div>
+        <div class="card-body">
+          <div class="stack-sm">
+            <% [['rc_book', 'RC Book', true], ['driving_license', 'Driving Licence', true], ['policy_copy', 'Insurance Policy copy', true], ['claim_form', 'Signed claim form', true], ['fir', 'FIR copy (if applicable)', false], ['invoice', 'Repair estimate / invoice', false]].forEach(function (d) { %>
+              <div class="form-row" data-file-row>
+                <div>
+                  <div class="small fw-600"><%= d[1] %></div>
+                  <div class="small <%= d[2] ? 'text-muted' : '' %>"><%= d[2] ? 'Required' : 'Optional' %></div>
+                  <input type="hidden" name="doc_type" value="<%= d[0] %>">
+                </div>
+                <label class="file-drop" data-file-drop>
+                  <svg class="icon"><use href="#i-file"/></svg>
+                  <div class="flex-1">
+                    <div class="fd-name" data-file-name>Choose file</div>
+                    <div class="fd-hint">PDF or clear photo · max <%= Math.round(helpers.config.maxUploadBytes / 1024 / 1024) %> MB</div>
+                  </div>
+                  <svg class="icon" style="width:16px;height:16px"><use href="#i-upload"/></svg>
+                  <input type="file" name="documents" accept="application/pdf,image/jpeg,image/png">
+                </label>
+              </div>
+            <% }); %>
+          </div>
+          <div class="note-box is-info mt-2 small">
+            <b>Tip:</b> lay each document flat, capture all four corners and avoid glare. OCR reads the policy number, vehicle number and owner name to cross-check them against the policy record.
+          </div>
+        </div>
+        <div class="card-foot row-between">
+          <button class="btn btn-outline" type="button" data-prev><%= t('common.previous') %></button>
+          <button class="btn btn-primary" type="button" data-next><%= t('common.next') %> <svg class="icon"><use href="#i-arrow-right"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 3 -->
+    <section data-step="3" hidden>
+      <div class="card">
+        <div class="card-head"><h3>Review & submit</h3><span class="badge is-neutral">Step 3 of 3</span></div>
+        <div class="card-body">
+          <div class="note-box is-success mb-2">
+            <b>What happens next:</b> the AI pipeline runs OCR, image forensics, vehicle classification, damage detection, severity scoring, repair-cost estimation, coverage retrieval and fraud scoring. The complete report then goes to an adjuster.
+          </div>
+
+          <div class="grid grid-3 mb-2">
+            <div class="soft"><div class="small text-muted">Verification stages</div><b>8 automated checks</b></div>
+            <div class="soft"><div class="small text-muted">Typical run time</div><b>3–6 seconds</b></div>
+            <div class="soft"><div class="small text-muted">Decision by</div><b>Human adjuster</b></div>
+          </div>
+
+          <label class="checkline">
+            <input type="checkbox" required name="declaration">
+            <span>I confirm that the information, photographs and documents submitted are genuine, relate to the reported incident, and that I have not altered any evidence. I understand that false claims may be rejected and reported.</span>
+          </label>
+        </div>
+        <div class="card-foot row-between">
+          <button class="btn btn-outline" type="button" data-prev><%= t('common.previous') %></button>
+          <button class="btn btn-primary btn-lg" type="submit" data-submit>
+            <svg class="icon"><use href="#i-cpu"/></svg> Submit & run AI verification
+          </button>
+        </div>
+      </div>
+    </section>
+  </form>
+  <% } %>
+</main>
+
+<script>
+  // keep file inputs and their type/angle selects aligned on submit
+  document.querySelectorAll('form[data-wizard]').forEach(function (form) {
+    form.addEventListener('submit', function () {
+      form.querySelectorAll('[data-file-row]').forEach(function (row) {
+        var input = row.querySelector('input[type="file"]');
+        if (input && (!input.files || input.files.length === 0)) {
+          row.querySelectorAll('input:hidden, select').forEach(function (el) { el.disabled = true; });
+        }
+      });
+    });
+  });
+</script>
+<%- include('../partials/footer') %>

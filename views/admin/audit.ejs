@@ -1,0 +1,29 @@
+<%- include('../partials/admin-start') %>
+
+<div class="page-head">
+  <div><h1 style="font-size:1.35rem">Audit trail</h1><p class="lead">Every administrative action on claims, decisions, payouts and settings.</p></div>
+</div>
+
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>When</th><th>Actor</th><th>Action</th><th>Entity</th><th>Detail</th><th>IP</th></tr></thead>
+    <tbody>
+      <% if (!logs.length) { %><tr><td colspan="6"><div class="empty" style="padding:2rem"><p class="mb-0">No audit entries yet.</p></div></td></tr><% } %>
+      <% logs.forEach(function (l) {
+           var meta = helpers.parseJSON(l.meta, {});
+           var detail = meta && meta.note ? meta.note : Object.keys(meta || {}).map(function (k) { return k + ': ' + JSON.stringify(meta[k]); }).join(' · ');
+      %>
+        <tr>
+          <td class="small text-muted no-wrap"><%= helpers.formatDateTime(l.created_at) %></td>
+          <td class="small"><%= l.actor_name || 'system' %></td>
+          <td><span class="badge is-<%= l.action.indexOf('reject') > -1 || l.action.indexOf('deleted') > -1 ? 'danger' : l.action.indexOf('approve') > -1 || l.action.indexOf('paid') > -1 ? 'success' : 'neutral' %>"><%= l.action %></span></td>
+          <td class="small mono"><%= l.entity || '—' %><%= l.entity_id ? ' #' + l.entity_id : '' %></td>
+          <td class="small text-muted truncate" style="max-width:380px"><%= detail %></td>
+          <td class="small text-muted mono"><%= l.ip || '—' %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../partials/admin-end') %>

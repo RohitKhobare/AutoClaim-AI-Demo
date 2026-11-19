@@ -1,0 +1,112 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main>
+  <section class="section" style="padding-bottom:1.5rem">
+    <div class="container">
+      <div class="section-head center">
+        <span class="eyebrow"><%= t('nav.help') %></span>
+        <h1 class="mt-1" style="font-size:clamp(1.8rem,3.4vw,2.5rem)">Help centre</h1>
+        <p class="lead">Answers for filing, tracking and settling a motor insurance claim on AutoClaim AI.</p>
+      </div>
+
+      <div class="grid grid-3">
+        <a class="card card-pad card-link" href="#claiming">
+          <div class="feature-icon"><svg class="icon"><use href="#i-clipboard"/></svg></div>
+          <h3 class="mt-2" style="font-size:.98rem">Filing a claim</h3>
+          <p class="small text-muted mb-0">Documents, photographs and the incident form explained.</p>
+        </a>
+        <a class="card card-pad card-link" href="#account">
+          <div class="feature-icon"><svg class="icon"><use href="#i-lock"/></svg></div>
+          <h3 class="mt-2" style="font-size:.98rem">Account & security</h3>
+          <p class="small text-muted mb-0">Sign-in issues, password resets and account recovery.</p>
+        </a>
+        <a class="card card-pad card-link" href="#settlement">
+          <div class="feature-icon"><svg class="icon"><use href="#i-wallet"/></svg></div>
+          <h3 class="mt-2" style="font-size:.98rem">Settlement & payment</h3>
+          <p class="small text-muted mb-0">How approved amounts reach your account.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="claiming" style="padding-top:1rem">
+    <div class="container container-narrow">
+      <h2 style="font-size:1.4rem">Filing a claim</h2>
+      <div class="stack-sm mb-3">
+        <% [1, 2, 3, 4, 5, 6].forEach(function (n, i) { %>
+          <details class="faq-item" <%= i === 0 ? 'open' : '' %>>
+            <summary><%= t('faq.q' + n) %></summary>
+            <p><%= t('faq.a' + n) %></p>
+          </details>
+        <% }); %>
+      </div>
+
+      <div class="card card-pad mb-3">
+        <h3 style="font-size:1rem">Document checklist</h3>
+        <div class="grid grid-2 mt-2" style="gap:.6rem">
+          <% [
+            ['RC Book', 'Mandatory', true], ['Driving Licence', 'Mandatory · valid at incident date', true],
+            ['Insurance Policy copy', 'Mandatory for comprehensive cover', true], ['Claim form', 'Mandatory · signed', true],
+            ['FIR copy', 'Required for theft, injury, hit-and-run', false], ['Accident photographs', 'Minimum 2 · taken at the spot', true],
+            ['Repair invoice', 'For reimbursement claims', false], ['Vehicle details', 'Auto-filled from your garage', true]
+          ].forEach(function (d) { %>
+            <div class="soft" style="display:flex;gap:.6rem;align-items:flex-start">
+              <svg class="icon" style="width:16px;height:16px;color:var(--<%= d[2] ? 'success' : 'muted' %>);flex:none;margin-top:2px"><use href="#i-<%= d[2] ? 'check-circle' : 'info' %>"/></svg>
+              <div><b class="small"><%= d[0] %></b><div class="small text-muted"><%= d[1] %></div></div>
+            </div>
+          <% }); %>
+        </div>
+      </div>
+
+      <h2 id="account" style="font-size:1.4rem">Account & security</h2>
+      <div class="stack-sm mb-3">
+        <details class="faq-item" open>
+          <summary>I forgot my password. What do I do?</summary>
+          <p>Password resets are handled by the claims desk in this deployment. Call +91 <%= contact.phone %> or email <%= contact.email %> from your registered address, and the team will verify your identity and issue a temporary password.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Can I change my language and theme?</summary>
+          <p>Yes. Use the globe icon in the header to switch between English, हिन्दी and मराठी, and the sun/moon icon to change the theme. Both preferences are remembered on your device and in your profile.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Who can see my claim evidence?</summary>
+          <p>Only you and the claims team handling your policy. Every administrator view of a claim is written to the audit trail with the account name and timestamp.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Can I remove a vehicle?</summary>
+          <p>Yes, as long as no claim is linked to it. Vehicles with claim history stay on record for audit and policy continuity.</p>
+        </details>
+      </div>
+
+      <h2 id="settlement" style="font-size:1.4rem">Settlement & payment</h2>
+      <div class="stack-sm mb-3">
+        <details class="faq-item" open>
+          <summary>When is the amount paid?</summary>
+          <p>Once an adjuster approves the claim, the settlement step opens in your claim page. Complete it to receive the approved amount; the receipt and reference number are stored in your claim timeline.</p>
+        </details>
+        <details class="faq-item">
+          <summary>What is deducted from the assessed repair cost?</summary>
+          <p>The compulsory deductible stated in your policy (Clause 7.2), plus any voluntary deductible and depreciation not covered by an add-on.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Is this a real payment gateway?</summary>
+          <p>In this project deployment the settlement runs in demo mode unless Razorpay keys are configured on the server. No real money moves in demo mode, and the checkout is clearly marked.</p>
+        </details>
+      </div>
+
+      <div class="cta-band">
+        <div>
+          <h2 style="font-size:1.4rem">Still stuck?</h2>
+          <p>Open a support ticket from your dashboard, or call the claims desk.</p>
+        </div>
+        <div class="flex" style="position:relative;z-index:1">
+          <a class="btn btn-gold" href="/app/support">Open a ticket</a>
+          <a class="btn" href="tel:<%= contact.phone %>" style="background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.28)">+91 <%= contact.phone %></a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

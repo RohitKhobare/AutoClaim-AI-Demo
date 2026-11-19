@@ -1,0 +1,69 @@
+<%- include('../partials/admin-start') %>
+
+<div class="page-head">
+  <div><h1 style="font-size:1.35rem">Policies</h1><p class="lead">Every policy drives the coverage agent — add clause text to make its citations meaningful.</p></div>
+</div>
+
+<div class="grid" style="grid-template-columns:1fr 340px;gap:1.25rem;align-items:start">
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Policy</th><th>Vehicle</th><th>Owner</th><th>Cover</th><th class="num">IDV</th><th>Period</th><th class="num">Claims</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <% policies.forEach(function (p) { %>
+          <tr>
+            <td><a class="mono strong small" href="/admin/policies/<%= p.id %>"><%= p.policy_number %></a><div class="small text-muted"><%= p.insurer %></div></td>
+            <td class="small"><%= p.make %> <%= p.model %><div class="mono small text-muted"><%= p.registration_no %></div></td>
+            <td class="small"><%= p.owner %></td>
+            <td class="small"><%= helpers.POLICY_TYPE_LABELS[p.policy_type] %></td>
+            <td class="num small"><%= helpers.formatCompactCurrency(p.idv) %></td>
+            <td class="small"><%= helpers.formatDate(p.start_date) %><div class="small text-muted">→ <%= helpers.formatDate(p.end_date) %></div></td>
+            <td class="num small"><%= p.claims %></td>
+            <td><span class="badge is-<%= p.status === 'active' ? 'success' : 'danger' %>"><%= helpers.titleCase(p.status) %></span></td>
+            <td class="text-right"><a class="small" href="/admin/policies/<%= p.id %>">Open</a></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Issue a policy</h3></div>
+    <div class="card-body">
+      <form action="/admin/policies" method="post" class="form-grid">
+        <div class="field">
+          <label for="vehicle_id">Vehicle <span class="req">*</span></label>
+          <select class="select" id="vehicle_id" name="vehicle_id" required>
+            <option value="">Select vehicle…</option>
+            <% vehicles.forEach(function (v) { %><option value="<%= v.id %>"><%= v.registration_no %> · <%= v.make %> <%= v.model %></option><% }); %>
+          </select>
+        </div>
+        <div class="field"><label for="policy_number">Policy number <span class="req">*</span></label><input class="input" id="policy_number" name="policy_number" required placeholder="POL-2026-1011"></div>
+        <div class="grid grid-2" style="gap:.6rem">
+          <div class="field">
+            <label for="policy_type">Cover</label>
+            <select class="select" id="policy_type" name="policy_type"><option value="comprehensive">Comprehensive</option><option value="third_party">Third-party</option><option value="own_damage">Own damage</option></select>
+          </div>
+          <div class="field">
+            <label for="status">Status</label>
+            <select class="select" id="status" name="status"><option value="active">Active</option><option value="expired">Expired</option><option value="lapsed">Lapsed</option><option value="cancelled">Cancelled</option></select>
+          </div>
+        </div>
+        <div class="grid grid-2" style="gap:.6rem">
+          <div class="field"><label for="start_date">Start date <span class="req">*</span></label><input class="input" id="start_date" name="start_date" type="date" required></div>
+          <div class="field"><label for="end_date">End date <span class="req">*</span></label><input class="input" id="end_date" name="end_date" type="date" required></div>
+        </div>
+        <div class="grid grid-2" style="gap:.6rem">
+          <div class="field"><label for="sum_insured">Sum insured</label><input class="input" id="sum_insured" name="sum_insured" type="number" placeholder="1000000"></div>
+          <div class="field"><label for="idv">IDV</label><input class="input" id="idv" name="idv" type="number" placeholder="900000"></div>
+        </div>
+        <div class="grid grid-2" style="gap:.6rem">
+          <div class="field"><label for="premium">Premium</label><input class="input" id="premium" name="premium" type="number" placeholder="18000"></div>
+          <div class="field"><label for="deductible">Deductible</label><input class="input" id="deductible" name="deductible" type="number" value="1000"></div>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit">Create policy</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/admin-end') %>

@@ -1,0 +1,75 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main>
+  <div class="auth-wrap">
+    <aside class="auth-side">
+      <div>
+        <a class="brand" href="/" style="color:#fff">
+          <span class="brand-mark" style="background:rgba(255,255,255,.1)"><svg class="icon"><use href="#i-shield"/></svg></span>
+          <span class="brand-text"><span class="brand-name">AutoClaim AI</span><span class="brand-sub" style="color:rgba(255,255,255,.55)"><%= t('brand.tagline') %></span></span>
+        </a>
+        <h2 class="mt-4">One account for every vehicle, policy and claim.</h2>
+        <p class="lead">Register once, then file a claim from the roadside and follow every stage of verification from your dashboard.</p>
+        <div class="auth-points">
+          <div><svg class="icon"><use href="#i-car"/></svg><span>Add your vehicles and link their policies</span></div>
+          <div><svg class="icon"><use href="#i-camera"/></svg><span>Upload accident photographs directly from your phone</span></div>
+          <div><svg class="icon"><use href="#i-activity"/></svg><span>Watch OCR, damage detection and risk scoring run live</span></div>
+          <div><svg class="icon"><use href="#i-wallet"/></svg><span>Receive your settlement with a downloadable receipt</span></div>
+        </div>
+      </div>
+      <div class="small" style="color:rgba(234,244,238,.5);position:relative;z-index:1">
+        <%= contact.person %> · <%= contact.email %>
+      </div>
+    </aside>
+
+    <div class="auth-form-wrap">
+      <div class="auth-form">
+        <h1><%= t('auth.registerTitle') %></h1>
+        <p class="text-muted"><%= t('auth.registerSub') %></p>
+
+        <form action="/register" method="post" class="form-grid mt-2">
+          <div class="field">
+            <label for="full_name"><%= t('auth.fullName') %></label>
+            <input class="input" id="full_name" name="full_name" required placeholder="Rohit Khobare" value="<%= typeof form !== 'undefined' && form.full_name ? form.full_name : '' %>">
+          </div>
+          <div class="grid grid-2" style="gap:.8rem">
+            <div class="field">
+              <label for="email"><%= t('auth.email') %></label>
+              <input class="input" id="email" name="email" type="email" required placeholder="you@example.com">
+            </div>
+            <div class="field">
+              <label for="phone"><%= t('auth.phone') %></label>
+              <input class="input" id="phone" name="phone" required inputmode="numeric" maxlength="10" placeholder="98220 11001">
+            </div>
+          </div>
+          <div class="field">
+            <label for="city"><%= t('auth.city') %> <span class="text-muted small">(<%= t('common.optional') %>)</span></label>
+            <input class="input" id="city" name="city" placeholder="Pune">
+          </div>
+          <div class="grid grid-2" style="gap:.8rem">
+            <div class="field">
+              <label for="password"><%= t('auth.password') %></label>
+              <input class="input" id="password" name="password" type="password" minlength="8" required placeholder="••••••••">
+              <span class="hint"><%= t('auth.passwordHint') %></span>
+            </div>
+            <div class="field">
+              <label for="confirm_password"><%= t('auth.confirm') %></label>
+              <input class="input" id="confirm_password" name="confirm_password" type="password" minlength="8" required placeholder="••••••••">
+            </div>
+          </div>
+          <button class="btn btn-primary btn-lg btn-block" type="submit"><%= t('auth.createAccount') %></button>
+          <p class="hint text-center"><%= t('auth.agree') %> <a href="/terms">Terms</a>.</p>
+        </form>
+
+        <p class="small text-muted text-center mt-3">
+          <%= t('auth.haveAccount') %> <a href="/login"><%= t('nav.login') %></a>
+        </p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="/js/app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<%- include('../partials/admin-start') %>
+
+<% function listUrl(p) { var params = new URLSearchParams(); if (status !== 'all') params.set('status', status); if (risk !== 'all') params.set('risk', risk); if (q) params.set('q', q); if (p > 1) params.set('page', p); var s = params.toString(); return '/admin/claims' + (s ? '?' + s : ''); } %>
+
+<div class="page-head">
+  <div>
+    <h1 style="font-size:1.35rem">Claims queue</h1>
+    <p class="lead"><%= helpers.formatNumber(total) %> claim(s) matching this filter.</p>
+  </div>
+  <div class="flex">
+    <a class="btn btn-outline btn-sm" href="/admin/claims?status=manual_review">Manual review (<%= counts.manual_review || 0 %>)</a>
+    <a class="btn btn-primary btn-sm" href="/admin/claims/new"><svg class="icon"><use href="#i-plus"/></svg> Register claim</a>
+  </div>
+</div>
+
+<form class="filter-bar mb-3" action="/admin/claims" method="get">
+  <div class="input-group" style="min-width:240px">
+    <svg class="icon"><use href="#i-search"/></svg>
+    <input class="input" name="q" value="<%= q %>" placeholder="Claim no, vehicle, customer…">
+  </div>
+  <select class="select" name="status">
+    <option value="all" <%= status === 'all' ? 'selected' : '' %>>All statuses</option>
+    <option value="open" <%= status === 'open' ? 'selected' : '' %>>Open (submitted / review)</option>
+    <% ['submitted', 'ai_review', 'manual_review', 'approved', 'rejected', 'paid'].forEach(function (s) { %>
+      <option value="<%= s %>" <%= status === s ? 'selected' : '' %>><%= helpers.statusMeta(s).label %></option>
+    <% }); %>
+  </select>
+  <select class="select" name="risk">
+    <option value="all" <%= risk === 'all' ? 'selected' : '' %>>All risk levels</option>
+    <option value="high" <%= risk === 'high' ? 'selected' : '' %>>High risk</option>
+    <option value="medium" <%= risk === 'medium' ? 'selected' : '' %>>Medium risk</option>
+    <option value="low" <%= risk === 'low' ? 'selected' : '' %>>Low risk</option>
+  </select>
+  <button class="btn btn-outline btn-sm" type="submit">Apply</button>
+  <% if (q || status !== 'all' || risk !== 'all') { %><a class="small" href="/admin/claims">Clear</a><% } %>
+</form>
+
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr><th>Claim</th><th>Customer</th><th>Vehicle</th><th>Incident</th><th>AI recommendation</th><th>Risk</th><th class="num">Estimate</th><th class="num">Claimed</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% if (!claims.length) { %>
+        <tr><td colspan="10"><div class="empty" style="padding:2rem"><p class="mb-0">No claims match this filter.</p></div></td></tr>
+      <% } %>
+      <% claims.forEach(function (c) { var sm = helpers.statusMeta(c.status); var rec = helpers.RECOMMENDATION_META[c.ai_recommendation]; var rk = helpers.RISK_META[c.risk_level]; %>
+        <tr>
+          <td>
+            <a class="mono strong" style="font-size:.8rem" href="/admin/claims/<%= c.id %>"><%= c.claim_number %></a>
+            <div class="small text-muted"><%= helpers.CLAIM_TYPE_LABELS[c.claim_type] %><%= c.is_manual_entry ? ' · manual' : '' %></div>
+          </td>
+          <td class="small"><%= c.customer_name %><div class="small text-muted">submitted <%= helpers.timeAgo(c.created_at) %></div></td>
+          <td class="small"><%= c.make %> <%= c.model %><div class="mono small text-muted"><%= c.registration_no %></div></td>
+          <td class="small"><%= helpers.formatDate(c.incident_date) %><div class="small text-muted"><%= c.image_count %> photo(s)</div></td>
+          <td class="small">
+            <% if (rec) { %><span class="badge is-<%= rec.tone %>"><%= rec.label %></span>
+              <div class="small text-muted mt-1"><%= Number(c.ai_confidence).toFixed(0) %>% confidence</div>
+            <% } else { %><span class="badge is-neutral">Pending</span><% } %>
+          </td>
+          <td><% if (rk) { %><span class="badge is-<%= rk.tone %>"><%= rk.label %></span><div class="small text-muted mt-1"><%= Math.round(Number(c.fraud_score) * 100) %>/100</div><% } else { %>—<% } %></td>
+          <td class="num small"><%= c.repair_cost ? helpers.formatCurrency(c.repair_cost) : '—' %></td>
+          <td class="num small"><%= helpers.formatCurrency(c.reported_amount) %></td>
+          <td><span class="badge is-<%= sm.tone %>"><%= sm.label %></span></td>
+          <td class="text-right"><a class="btn btn-ghost btn-sm" href="/admin/claims/<%= c.id %>">Open</a></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<% if (pages > 1) { %>
+  <div class="row-between mt-2">
+    <span class="small text-muted">Page <%= page %> of <%= pages %></span>
+    <div class="flex" style="gap:.4rem">
+      <% if (page > 1) { %><a class="btn btn-outline btn-sm" href="<%= listUrl(page - 1) %>">Previous</a><% } %>
+      <% if (page < pages) { %><a class="btn btn-outline btn-sm" href="<%= listUrl(page + 1) %>">Next</a><% } %>
+    </div>
+  </div>
+<% } %>
+
+<%- include('../partials/admin-end') %>

@@ -1,0 +1,62 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main class="container" style="padding-top:1.75rem;padding-bottom:2rem">
+  <div class="page-head">
+    <div>
+      <div class="breadcrumb"><a href="/app">Dashboard</a><svg class="icon"><use href="#i-chevron-right"/></svg><span>Claims</span></div>
+      <h1>My claims</h1>
+      <p class="lead">Track every claim from submission through AI verification to settlement.</p>
+    </div>
+    <a class="btn btn-primary" href="/app/claims/new"><svg class="icon"><use href="#i-plus"/></svg> File a new claim</a>
+  </div>
+
+  <div class="tabs">
+    <a class="tab <%= status === 'all' ? 'active' : '' %>" href="/app/claims">All <span class="count"><%= counts.total || 0 %></span></a>
+    <a class="tab <%= status === 'open' ? 'active' : '' %>" href="/app/claims?status=open">Open <span class="count"><%= (counts.submitted || 0) + (counts.ai_review || 0) + (counts.manual_review || 0) %></span></a>
+    <a class="tab <%= status === 'manual_review' ? 'active' : '' %>" href="/app/claims?status=manual_review">Manual review <span class="count"><%= counts.manual_review || 0 %></span></a>
+    <a class="tab <%= status === 'approved' ? 'active' : '' %>" href="/app/claims?status=approved">Approved <span class="count"><%= counts.approved || 0 %></span></a>
+    <a class="tab <%= status === 'paid' ? 'active' : '' %>" href="/app/claims?status=paid">Settled <span class="count"><%= counts.paid || 0 %></span></a>
+    <a class="tab <%= status === 'rejected' ? 'active' : '' %>" href="/app/claims?status=rejected">Rejected <span class="count"><%= counts.rejected || 0 %></span></a>
+  </div>
+
+  <% if (!claims.length) { %>
+    <div class="card"><div class="empty">
+      <svg class="icon"><use href="#i-clipboard"/></svg>
+      <h4><%= t('common.noData') %></h4>
+      <p>No claims match this filter.</p>
+      <a class="btn btn-primary btn-sm" href="/app/claims/new">File a claim</a>
+    </div></div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>Claim</th><th>Vehicle</th><th>Incident</th><th>AI result</th><th class="num">Claimed</th><th class="num">Approved</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+          <% claims.forEach(function (c) { var sm = helpers.statusMeta(c.status); var rec = helpers.RECOMMENDATION_META[c.ai_recommendation]; %>
+            <tr>
+              <td>
+                <a class="mono strong" style="font-size:.82rem" href="/app/claims/<%= c.id %>"><%= c.claim_number %></a>
+                <div class="small text-muted"><%= helpers.CLAIM_TYPE_LABELS[c.claim_type] %></div>
+              </td>
+              <td><%= c.make %> <%= c.model %><div class="small text-muted mono"><%= c.registration_no %></div></td>
+              <td><%= helpers.formatDate(c.incident_date) %><div class="small text-muted"><%= c.location.split(',')[0] %></div></td>
+              <td>
+                <% if (rec) { %><span class="badge is-<%= rec.tone %>"><%= rec.label %></span>
+                  <div class="small text-muted mt-1"><%= c.ai_confidence %>% confidence</div>
+                <% } else { %><span class="badge is-neutral">Pending</span><% } %>
+              </td>
+              <td class="num"><%= helpers.formatCurrency(c.reported_amount) %></td>
+              <td class="num"><%= c.approved_amount ? helpers.formatCurrency(c.approved_amount) : '—' %></td>
+              <td><span class="badge is-<%= sm.tone %>"><%= sm.label %></span></td>
+              <td class="text-right"><a class="btn btn-ghost btn-sm" href="/app/claims/<%= c.id %>">Open</a></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</main>
+
+<%- include('../partials/footer') %>

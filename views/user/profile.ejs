@@ -1,0 +1,90 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main class="container" style="padding-top:1.75rem;padding-bottom:2rem">
+  <div class="page-head">
+    <div>
+      <div class="breadcrumb"><a href="/app">Dashboard</a><svg class="icon"><use href="#i-chevron-right"/></svg><span>Profile</span></div>
+      <h1>Profile & preferences</h1>
+      <p class="lead">Your account details, password and display preferences.</p>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1.2fr .8fr;gap:1.25rem;align-items:start">
+    <div class="stack">
+      <div class="card">
+        <div class="card-head"><h3>Account details</h3><span class="badge is-neutral">Member since <%= helpers.formatDate(currentUser.created_at) %></span></div>
+        <div class="card-body">
+          <form action="/app/profile" method="post" class="form-grid">
+            <div class="grid grid-2" style="gap:.8rem">
+              <div class="field"><label for="full_name">Full name</label><input class="input" id="full_name" name="full_name" required value="<%= currentUser.full_name %>"></div>
+              <div class="field"><label for="phone">Mobile number</label><input class="input" id="phone" name="phone" required maxlength="10" value="<%= currentUser.phone %>"></div>
+            </div>
+            <div class="field"><label>Email address</label><input class="input" value="<%= currentUser.email %>" disabled><span class="hint">Contact support to change your registered email.</span></div>
+            <div class="grid grid-2" style="gap:.8rem">
+              <div class="field"><label for="city">City</label><input class="input" id="city" name="city" value="<%= currentUser.city || '' %>"></div>
+              <div class="field"><label for="state">State</label><input class="input" id="state" name="state" value="<%= currentUser.state || '' %>"></div>
+            </div>
+            <button class="btn btn-primary" type="submit">Save changes</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Change password</h3></div>
+        <div class="card-body">
+          <form action="/app/profile/password" method="post" class="form-grid">
+            <div class="field"><label for="current_password">Current password</label><input class="input" id="current_password" name="current_password" type="password" required></div>
+            <div class="grid grid-2" style="gap:.8rem">
+              <div class="field"><label for="new_password">New password</label><input class="input" id="new_password" name="new_password" type="password" minlength="8" required><span class="hint">At least 8 characters.</span></div>
+              <div class="field"><label for="confirm_password">Confirm new password</label><input class="input" id="confirm_password" name="confirm_password" type="password" minlength="8" required></div>
+            </div>
+            <button class="btn btn-outline" type="submit">Update password</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div class="card">
+        <div class="card-head"><h3>Preferences</h3></div>
+        <div class="card-body">
+          <form action="/app/preferences" method="post" class="form-grid">
+            <input type="hidden" name="back" value="/app/profile">
+            <div class="field">
+              <label>Language</label>
+              <select class="select" name="language">
+                <% Object.keys(locales).forEach(function (code) { %>
+                  <option value="<%= code %>" <%= currentUser.language === code ? 'selected' : '' %>><%= locales[code].label %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="field">
+              <label>Theme</label>
+              <select class="select" name="theme">
+                <option value="light" <%= currentUser.theme === 'light' ? 'selected' : '' %>>Light</option>
+                <option value="dark" <%= currentUser.theme === 'dark' ? 'selected' : '' %>>Dark</option>
+              </select>
+            </div>
+            <button class="btn btn-outline" type="submit">Save preferences</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="flex" style="gap:.7rem;margin-bottom:.6rem">
+            <span class="avatar" style="width:44px;height:44px;font-size:.95rem"><%= helpers.initials(currentUser.full_name) %></span>
+            <div><b><%= currentUser.full_name %></b><div class="small text-muted"><%= currentUser.email %></div></div>
+          </div>
+          <div class="divider"></div>
+          <div class="small text-muted">Role</div><b class="small"><%= currentUser.role === 'admin' ? 'Administrator' : 'Policyholder' %></b>
+          <div class="small text-muted mt-2">Need anything else?</div>
+          <a class="btn btn-outline btn-sm btn-block mt-1" href="/app/support">Contact support</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

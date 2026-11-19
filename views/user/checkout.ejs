@@ -1,0 +1,92 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main class="container container-narrow" style="padding-top:1.75rem;padding-bottom:2rem">
+  <div class="page-head">
+    <div>
+      <div class="breadcrumb"><a href="/app/claims/<%= claim.id %>"><%= claim.claim_number %></a><svg class="icon"><use href="#i-chevron-right"/></svg><span>Checkout</span></div>
+      <h1>Complete settlement</h1>
+      <p class="lead"><%= demo ? 'Simulated gateway — no real payment is taken.' : 'Razorpay secured checkout.' %></p>
+    </div>
+    <span class="badge is-<%= demo ? 'warn' : 'info' %>"><%= demo ? 'Demo mode' : 'Razorpay live/test' %></span>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 1fr;gap:1.25rem;align-items:start">
+    <div class="card">
+      <div class="card-head"><h3>Order summary</h3><span class="mono small text-muted"><%= pay.order_id %></span></div>
+      <div class="card-body">
+        <dl class="kv" style="grid-template-columns:150px 1fr">
+          <dt>Claim</dt><dd class="mono"><%= claim.claim_number %></dd>
+          <dt>Vehicle</dt><dd><%= claim.make %> <%= claim.model %></dd>
+          <dt>Payee</dt><dd><%= currentUser.full_name %></dd>
+          <dt>Receipt</dt><dd class="mono"><%= pay.receipt %></dd>
+        </dl>
+        <div class="divider"></div>
+        <div class="row-between"><span class="text-muted">Settlement amount</span><b><%= helpers.formatCurrency(pay.amount) %></b></div>
+        <div class="row-between small text-muted mt-1"><span>Platform fee</span><span>₹ 0</span></div>
+        <div class="row-between small text-muted"><span>GST</span><span>₹ 0</span></div>
+        <div class="divider"></div>
+        <div class="row-between"><b>Total payable</b><b style="font-size:1.2rem"><%= helpers.formatCurrency(pay.amount) %></b></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3><%= demo ? 'Demo payment' : 'Razorpay checkout' %></h3></div>
+      <div class="card-body">
+        <% if (demo) { %>
+          <div class="note-box is-warn small mb-2">
+            <b>Simulated transaction.</b> Order <span class="mono"><%= pay.order_id %></span> was created locally. Confirming will mark this claim as settled and generate a reference number.
+          </div>
+          <form action="/app/claims/<%= claim.id %>/pay/confirm" method="post" class="form-grid">
+            <div class="field">
+              <label>Payment method</label>
+              <select class="select" name="method">
+                <option value="upi">UPI — demo@okaxis</option>
+                <option value="neft">NEFT — HDFC ****4821</option>
+                <option value="card">Card — **** **** **** 4242</option>
+              </select>
+            </div>
+            <div class="soft small">
+              <div class="row-between"><span class="text-muted">Amount</span><b><%= helpers.formatCurrency(pay.amount) %></b></div>
+              <div class="row-between"><span class="text-muted">Currency</span><b>INR</b></div>
+              <div class="row-between"><span class="text-muted">Mode</span><b>Demo / sandbox</b></div>
+            </div>
+            <button class="btn btn-primary btn-lg btn-block" type="submit"><svg class="icon"><use href="#i-lock"/></svg> Pay <%= helpers.formatCurrency(pay.amount) %></button>
+            <p class="hint text-center mb-0">By confirming you accept the demo settlement. No card details are stored.</p>
+          </form>
+        <% } else { %>
+          <p class="small text-muted">Complete the payment in the Razorpay window. The claim is marked settled once the signature is verified.</p>
+          <button class="btn btn-primary btn-lg btn-block" id="rzp-button">Pay <%= helpers.formatCurrency(pay.amount) %></button>
+          <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+          <script>
+            var options = {
+              key: '<%= keyId %>',
+              amount: <%= Math.round(Number(pay.amount) * 100) %>,
+              currency: 'INR',
+              name: 'AutoClaim AI',
+              description: 'Settlement for <%= claim.claim_number %>',
+              order_id: '<%= pay.order_id %>',
+              prefill: { name: '<%= currentUser.full_name %>', email: '<%= currentUser.email %>', contact: '<%= currentUser.phone %>' },
+              theme: { color: '#0f5132' },
+              handler: function (response) {
+                fetch('/app/claims/<%= claim.id %>/pay/verify', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(response)
+                }).then(function (r) { return r.json(); }).then(function (data) {
+                  if (data.ok) window.location = data.redirect;
+                  else alert('Payment verification failed. Please contact support.');
+                });
+              }
+            };
+            document.getElementById('rzp-button').addEventListener('click', function () {
+              new Razorpay(options).open();
+            });
+          </script>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,70 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Install project dependencies",
+			"type": "shell",
+			"command": "npm install",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Start temporary MySQL",
+			"type": "shell",
+			"command": "node scripts/dev-mysql.js",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Initialize and seed database",
+			"type": "shell",
+			"command": "npm run db:init -- --seed",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Start AutoClaim AI",
+			"type": "shell",
+			"command": "npm start",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Focused validation",
+			"type": "shell",
+			"command": "node --check server.js && node --check src/config.js && node --check src/db.js && node --check scripts/init-db.js && node --check scripts/seed-data.js && node -e \"const fs=require('fs'),path=require('path'); JSON.parse(fs.readFileSync('package.json','utf8')); const dir=path.join('src','locales'); const files=fs.readdirSync(dir).filter(f=>f.toLowerCase().endsWith('.json')).sort(); for(const f of files) JSON.parse(fs.readFileSync(path.join(dir,f),'utf8')); console.log('Parsed package.json and '+files.length+' locale JSON files: '+files.join(', '));\" && npm run db:init -- --seed && npm run db:init -- --seed",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Inspect GitHub publishing setup",
+			"type": "shell",
+			"command": "git status --short; git remote -v; git ls-remote https://github.com/RohitKhobare/AutoClaim-AI-Demo.git HEAD",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check GitHub publish authentication",
+			"type": "shell",
+			"command": "git --version; gh auth status",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check remote and Git credentials",
+			"type": "shell",
+			"command": "git config --global --get credential.helper; git ls-remote https://github.com/RohitKhobare/AutoClaim-AI-Demo.git HEAD; Write-Output \"git exit: $LASTEXITCODE\"",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Prepare public repository commit",
+			"type": "shell",
+			"command": "git init -b main; git remote add origin https://github.com/RohitKhobare/AutoClaim-AI-Demo.git; git add -A; git status --short",
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}

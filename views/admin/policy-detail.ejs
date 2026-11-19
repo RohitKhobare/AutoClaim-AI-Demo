@@ -1,0 +1,91 @@
+<%- include('../partials/admin-start') %>
+
+<div class="page-head">
+  <div>
+    <div class="breadcrumb"><a href="/admin/policies">Policies</a><svg class="icon"><use href="#i-chevron-right"/></svg><span><%= policy.policy_number %></span></div>
+    <h1 style="font-size:1.35rem"><%= policy.policy_number %> <span class="badge is-<%= policy.status === 'active' ? 'success' : 'danger' %>"><%= helpers.titleCase(policy.status) %></span></h1>
+    <p class="lead"><%= policy.make %> <%= policy.model %> · <span class="mono"><%= policy.registration_no %></span> · <%= policy.owner %></p>
+  </div>
+  <a class="btn btn-outline btn-sm" href="/admin/customers/<%= policy.user_id %>">Customer record</a>
+</div>
+
+<div class="grid" style="grid-template-columns:1fr 1fr;gap:1.25rem;align-items:start">
+  <div class="card">
+    <div class="card-head"><h3>Policy schedule</h3></div>
+    <div class="card-body">
+      <dl class="kv" style="grid-template-columns:160px 1fr">
+        <dt>Policy number</dt><dd class="mono"><%= policy.policy_number %></dd>
+        <dt>Insured</dt><dd><%= policy.owner %> · <%= policy.email %></dd>
+        <dt>Vehicle</dt><dd><%= policy.make %> <%= policy.model %> <%= policy.year %></dd>
+        <dt>Registration</dt><dd class="mono"><%= policy.registration_no %></dd>
+        <dt>Cover type</dt><dd><%= helpers.POLICY_TYPE_LABELS[policy.policy_type] %></dd>
+        <dt>Period</dt><dd><%= helpers.formatDate(policy.start_date) %> → <%= helpers.formatDate(policy.end_date) %></dd>
+        <dt>Sum insured</dt><dd><%= helpers.formatCurrency(policy.sum_insured) %></dd>
+        <dt>IDV</dt><dd><%= helpers.formatCurrency(policy.idv) %></dd>
+        <dt>Premium</dt><dd><%= helpers.formatCurrency(policy.premium) %></dd>
+        <dt>Deductible</dt><dd><%= helpers.formatCurrency(policy.deductible) %></dd>
+        <dt>Add-ons</dt><dd><%= addons.length ? addons.join(', ') : '—' %></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Add a clause</h3><span class="small text-muted"><%= clauses.length %> on file</span></div>
+    <div class="card-body">
+      <form action="/admin/policies/<%= policy.id %>/clauses" method="post" class="form-grid">
+        <div class="grid grid-2" style="gap:.6rem">
+          <div class="field"><label for="clause_no">Clause no.</label><input class="input" id="clause_no" name="clause_no" required placeholder="4.2.3"></div>
+          <div class="field">
+            <label for="category">Category</label>
+            <select class="select" id="category" name="category">
+              <option value="coverage">Coverage</option><option value="exclusion">Exclusion</option>
+              <option value="condition">Condition</option><option value="claim_process">Claim process</option>
+              <option value="deductible">Deductible</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label for="title">Title</label><input class="input" id="title" name="title" required placeholder="Flood and inundation"></div>
+        <div class="field"><label for="body">Clause text</label><textarea class="textarea" id="body" name="body" required style="min-height:110px" placeholder="Paste the exact policy wording the coverage agent should cite."></textarea></div>
+        <button class="btn btn-outline btn-block btn-sm" type="submit">Add clause</button>
+        <p class="hint mb-0">The coverage agent retrieves the closest clauses by keyword similarity and cites the best match.</p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-head"><h3>Clause library</h3></div>
+  <div class="card-body">
+    <% if (!clauses.length) { %><p class="small text-muted mb-0">No clauses on file — coverage checks will fall back to generic categories.</p><% } %>
+    <% clauses.forEach(function (c) { %>
+      <details class="faq-item mb-1" style="border-radius:10px">
+        <summary><span><span class="mono" style="color:var(--primary)"><%= c.clause_no %></span> · <%= c.title %> <span class="pill" style="margin-left:.4rem"><%= c.category %></span></span></summary>
+        <p style="color:var(--text-2)"><%= c.body %></p>
+      </details>
+    <% }); %>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-head"><h3>Claims under this policy</h3></div>
+  <div class="table-wrap" style="border:0">
+    <table class="table">
+      <thead><tr><th>Claim</th><th>Incident</th><th class="num">Claimed</th><th>AI result</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <% if (!claims.length) { %><tr><td colspan="6"><div class="empty" style="padding:1.5rem"><p class="mb-0">No claims.</p></div></td></tr><% } %>
+        <% claims.forEach(function (c) { var sm = helpers.statusMeta(c.status); var rec = helpers.RECOMMENDATION_META[c.ai_recommendation]; %>
+          <tr>
+            <td class="mono small"><%= c.claim_number %></td>
+            <td class="small"><%= helpers.formatDate(c.incident_date) %></td>
+            <td class="num small"><%= helpers.formatCurrency(c.reported_amount) %></td>
+            <td><% if (rec) { %><span class="badge is-<%= rec.tone %>"><%= rec.label %></span><% } else { %>—<% } %></td>
+            <td><span class="badge is-<%= sm.tone %>"><%= sm.label %></span></td>
+            <td class="text-right"><a class="small" href="/admin/claims/<%= c.id %>">Open</a></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/admin-end') %>

@@ -1,0 +1,68 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main class="container container-narrow" style="padding-top:1.75rem;padding-bottom:2rem">
+  <div class="page-head">
+    <div>
+      <div class="breadcrumb"><a href="/app/claims">Claims</a><svg class="icon"><use href="#i-chevron-right"/></svg><a href="/app/claims/<%= claim.id %>"><%= claim.claim_number %></a><svg class="icon"><use href="#i-chevron-right"/></svg><span>Settlement</span></div>
+      <h1>Receive your settlement</h1>
+      <p class="lead">Your claim has been approved. Confirm the payout to complete the process.</p>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1.15fr .85fr;gap:1.25rem;align-items:start">
+    <div class="card">
+      <div class="card-head"><h3>Approved claim</h3><span class="badge is-success">Approved</span></div>
+      <div class="card-body">
+        <dl class="kv" style="grid-template-columns:160px 1fr">
+          <dt>Claim number</dt><dd class="mono"><%= claim.claim_number %></dd>
+          <dt>Vehicle</dt><dd><%= claim.make %> <%= claim.model %> · <span class="mono"><%= claim.registration_no %></span></dd>
+          <dt>Policy</dt><dd class="mono"><%= claim.policy_number %></dd>
+          <dt>Assessed repair cost</dt><dd><%= helpers.formatCurrency(claim.repair_cost) %></dd>
+          <dt>Compulsory deductible</dt><dd>− <%= helpers.formatCurrency(claim.deductible) %></dd>
+          <dt>Decided by</dt><dd><%= claim.decided_by_name || 'Claims desk' %></dd>
+        </dl>
+        <div class="divider"></div>
+        <div class="row-between">
+          <span class="text-muted">Settlement amount</span>
+          <span class="stat-value" style="font-size:1.7rem;color:var(--green-800)"><%= helpers.formatCurrency(claim.approved_amount) %></span>
+        </div>
+      </div>
+      <div class="card-foot">
+        <% if (demo) { %>
+          <div class="note-box is-warn small">
+            <b>Demo gateway.</b> This deployment is not connected to Razorpay keys, so the checkout is simulated. No real money moves and no payment credentials are collected.
+          </div>
+        <% } else { %>
+          <div class="note-box is-info small">Secure payment processed by Razorpay. You will be redirected to the Razorpay checkout.</div>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Payment</h3></div>
+      <div class="card-body">
+        <form action="/app/claims/<%= claim.id %>/pay" method="post">
+          <div class="form-grid">
+            <div class="soft">
+              <div class="small text-muted">Amount payable</div>
+              <div class="fw-600" style="font-size:1.25rem"><%= helpers.formatCurrency(claim.approved_amount) %></div>
+              <div class="small text-muted">Claim <%= claim.claim_number %></div>
+            </div>
+            <div class="field">
+              <label>Preferred method</label>
+              <div class="stack-sm">
+                <label class="checkline"><input type="radio" name="method_pref" value="upi" checked> UPI / bank transfer</label>
+                <label class="checkline"><input type="radio" name="method_pref" value="neft"> NEFT to registered account</label>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-lg btn-block" type="submit">Continue to checkout</button>
+            <a class="btn btn-ghost btn-block" href="/app/claims/<%= claim.id %>">Back to claim</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

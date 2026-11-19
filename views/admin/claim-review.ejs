@@ -1,0 +1,297 @@
+<%- include('../partials/admin-start') %>
+
+<% var sm = helpers.statusMeta(claim.status); var rec = helpers.RECOMMENDATION_META[claim.ai_recommendation]; var risk = helpers.RISK_META[claim.risk_level]; var sev = helpers.SEVERITY_META[claim.severity]; %>
+<% var settled = ['approved', 'paid', 'rejected'].indexOf(claim.status) > -1; %>
+
+<div class="page-head">
+  <div>
+    <div class="breadcrumb"><a href="/admin/claims">Claims</a><svg class="icon"><use href="#i-chevron-right"/></svg><span><%= claim.claim_number %></span></div>
+    <h1 style="font-size:1.35rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap"><%= claim.claim_number %> <span class="badge is-<%= sm.tone %>"><%= sm.label %></span></h1>
+    <p class="lead"><%= claim.customer_name %> · <%= claim.make %> <%= claim.model %> · <span class="mono"><%= claim.registration_no %></span></p>
+  </div>
+  <div class="flex">
+    <button class="btn btn-outline btn-sm" type="button" data-print><svg class="icon"><use href="#i-download"/></svg> Print</button>
+    <form action="/admin/claims/<%= claim.id %>/analyze" method="post" class="inline">
+      <button class="btn btn-outline btn-sm" type="submit" data-confirm="Re-run the full AI pipeline for this claim?"><svg class="icon"><use href="#i-refresh"/></svg> Re-run AI</button>
+    </form>
+    <a class="btn btn-ghost btn-sm" href="/app/claims/<%= claim.id %>">Customer view</a>
+  </div>
+</div>
+
+<div class="detail-grid">
+  <div class="stack">
+    <!-- AI REPORT -->
+    <div class="card card-accent">
+      <div class="card-head">
+        <div><h3>AI verification report</h3>
+          <div class="small text-muted"><%= claim.ai_status === 'completed' ? 'Completed in ' + (Number(claim.processing_ms) / 1000).toFixed(1) + 's' : 'Status: ' + claim.ai_status %></div>
+        </div>
+        <% if (rec) { %><span class="badge is-<%= rec.tone %>"><%= rec.label %></span><% } %>
+      </div>
+      <div class="card-body">
+        <% if (claim.ai_status !== 'completed') { %>
+          <div class="empty" style="padding:1.5rem">
+            <svg class="icon"><use href="#i-cpu"/></svg>
+            <h4>No analysis yet</h4>
+            <p>Run the pipeline to produce document, image, damage and fraud evidence.</p>
+          </div>
+        <% } else { %>
+          <div class="flex" style="gap:1.25rem;align-items:center;flex-wrap:wrap">
+            <div class="gauge" style="--pct:<%= claim.ai_confidence %>;--tone:var(--<%= claim.ai_confidence >= 85 ? 'success' : claim.ai_confidence >= 65 ? 'warn' : 'danger' %>)">
+              <div><b><%= Number(claim.ai_confidence).toFixed(0) %>%</b><span>Confidence</span></div>
+            </div>
+            <div class="flex-1" style="min-width:260px">
+              <p class="small" style="margin:0;color:var(--text-2)"><%= record.summary %></p>
+              <div class="flex mt-2">
+                <span class="pill">Fraud <b><%= Math.round(Number(claim.fraud_score) * 100) %>/100</b></span>
+                <span class="pill">Image AI <b><%= Number(claim.ai_image_probability).toFixed(1) %>%</b></span>
+                <span class="pill">Coverage <b><%= claim.coverage_covered ? 'Included' : 'Excluded' %></b></span>
+                <span class="pill">Severity <b><%= sev ? sev.label : '—' %></b></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+          <div class="grid grid-2" style="gap:1.25rem">
+            <div>
+              <div class="small fw-600 mb-1">Signals</div>
+              <% (record.key_signals || []).forEach(function (s) { %>
+                <div class="row-between" style="font-size:.82rem;padding:.28rem 0;border-bottom:1px dashed var(--border)">
+                  <span class="text-muted"><%= s.label %></span>
+                  <span class="fw-600 impact-<%= s.impact === 'positive' ? 'pos' : s.impact === 'negative' ? 'neg' : 'neutral' %>"><%= s.value %></span>
+                </div>
+              <% }); %>
+            </div>
+            <div>
+              <div class="small fw-600 mb-1">Coverage reasoning (Clause <%= claim.coverage_clause %>)</div>
+              <div class="soft small"><%= record.coverage_reason %></div>
+              <% if (clause) { %>
+                <details class="mt-1"><summary class="small fw-600" style="cursor:pointer;color:var(--primary)"><%= clause.clause_no %> · <%= clause.title %></summary>
+                  <p class="small text-muted mt-1 mb-0"><%= clause.body %></p>
+                </details>
+              <% } %>
+              <% if (record.retrieved_clauses) { %>
+                <div class="small text-muted mt-1">Retrieved set: <%= record.retrieved_clauses.map(function (c) { return c.clause_no; }).join(', ') %></div>
+              <% } %>
+            </div>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- EVIDENCE -->
+    <% if (images.length) { %>
+      <div class="card">
+        <div class="card-head"><h3>Photographic evidence</h3><span class="small text-muted"><%= images.length %> image(s) · worst-case <%= Number(claim.ai_image_probability || 0).toFixed(1) %>% AI probability</span></div>
+        <div class="card-body">
+          <div class="thumb-grid">
+            <% images.forEach(function (img) { var bad = Number(img.ai_probability) > 40; %>
+              <div>
+                <div class="thumb">
+                  <% if (img.stored_name) { %><img src="/uploads/<%= img.stored_name %>" alt="accident photo"><% } else { %><div class="ph"><svg class="icon"><use href="#i-image"/></svg><span><%= helpers.ANGLE_LABELS[img.angle] %></span></div><% } %>
+                  <span class="flag badge is-<%= bad ? 'danger' : 'success' %>"><%= Number(img.ai_probability || 0).toFixed(0) %>%</span>
+                </div>
+                <div class="thumb-meta"><span><%= helpers.ANGLE_LABELS[img.angle] %></span><span><%= img.is_ai_generated ? 'AI/edit' : 'Authentic' %></span></div>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      </div>
+    <% } %>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="card-head"><h3>Damage & severity</h3><% if (sev) { %><span class="badge is-<%= sev.tone %>"><%= sev.label %></span><% } %></div>
+        <div class="card-body">
+          <% if (!damages.length) { %><p class="small text-muted mb-0">No damage classes detected.</p><% } %>
+          <% damages.forEach(function (d) { var conf = Math.round(Number(d.confidence) * 100); %>
+            <div style="margin-bottom:.55rem">
+              <div class="row-between" style="font-size:.8rem"><span><%= d.type %><% if (d.count > 1) { %> ×<%= d.count %><% } %></span><b><%= conf %>%</b></div>
+              <div class="meter"><span style="width:<%= conf %>%"></span></div>
+            </div>
+          <% }); %>
+          <div class="divider"></div>
+          <div class="row-between small"><span class="text-muted">Severity score</span><b><%= Number(claim.severity_score || 0).toFixed(2) %></b></div>
+          <div class="row-between small"><span class="text-muted">Vehicle match</span><b><%= claim.detected_make %> <%= claim.detected_model %> · <%= Number(claim.vehicle_match || 0).toFixed(1) %>%</b></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Repair estimate</h3><span class="badge is-neutral">Claimed <%= helpers.formatCurrency(claim.reported_amount) %></span></div>
+        <div class="card-body">
+          <div class="stat-value" style="font-size:1.5rem;color:var(--green-800)"><%= helpers.formatCurrency(claim.repair_cost || 0) %></div>
+          <table class="table table-compact mt-1">
+            <tbody>
+              <% (breakdown || []).forEach(function (b) { %><tr><td class="small"><%= b.label %></td><td class="num small"><%= helpers.formatCurrency(b.amount) %></td></tr><% }); %>
+            </tbody>
+          </table>
+          <div class="small text-muted">IDV <%= helpers.formatCurrency(claim.idv) %> · deductible <%= helpers.formatCurrency(claim.deductible) %></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OCR + DOCS -->
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="card-head"><h3>OCR cross-check</h3><span class="badge is-<%= claim.ocr_verified ? 'success' : 'warn' %>"><%= claim.ocr_verified ? 'Verified' : 'Incomplete' %></span></div>
+        <div class="card-body">
+          <% if (ocr.fields && ocr.fields.length) { %>
+            <table class="table table-compact">
+              <tbody>
+                <% ocr.fields.forEach(function (f) { %>
+                  <tr><td class="small"><%= f.label %></td><td class="small mono"><%= f.value %></td>
+                    <td><span class="badge is-<%= f.matched ? 'success' : 'danger' %>"><%= f.matched ? 'OK' : 'Mismatch' %></span></td></tr>
+                <% }); %>
+              </tbody>
+            </table>
+          <% } else { %><p class="small text-muted mb-0">No OCR result.</p><% } %>
+          <% if (ocr.missing && ocr.missing.length) { %><div class="note-box is-warn mt-2 small">Missing: <%= ocr.missing.join(', ') %></div><% } %>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Documents</h3><span class="small text-muted"><%= documents.length %></span></div>
+        <div class="card-body">
+          <% documents.forEach(function (d) { %>
+            <div class="doc-row">
+              <span class="doc-icon"><svg class="icon"><use href="#i-file"/></svg></span>
+              <div class="flex-1" style="min-width:0">
+                <div class="small fw-600"><%= helpers.DOC_LABELS[d.doc_type] %></div>
+                <div class="small text-muted truncate"><%= d.original_name %></div>
+              </div>
+              <% if (d.verified !== null) { %><span class="badge is-<%= d.verified ? 'success' : 'warn' %>"><%= d.verified ? 'Verified' : 'Check' %></span><% } %>
+              <% if (d.stored_name) { %><a class="btn btn-ghost btn-sm" href="/uploads/<%= d.stored_name %>" target="_blank" rel="noopener"><svg class="icon"><use href="#i-external"/></svg></a><% } %>
+            </div>
+          <% }); %>
+          <% if (!documents.length) { %><p class="small text-muted mb-0">No documents uploaded.</p><% } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- FRAUD -->
+    <div class="card">
+      <div class="card-head"><h3>Fraud & risk signals</h3>
+        <% if (risk) { %><span class="badge is-<%= risk.tone %>"><%= risk.label %> · <%= Math.round(Number(claim.fraud_score) * 100) %>/100</span><% } %>
+      </div>
+      <div class="card-body">
+        <% if (!signals.length) { %><p class="small text-muted mb-0">No signals raised.</p><% } %>
+        <% signals.forEach(function (s) { %>
+          <div class="signal-row">
+            <span class="signal-label"><%= s.label %></span>
+            <span class="signal-weight <%= Number(s.weight) > 0 ? 'impact-neg' : 'impact-pos' %>"><%= Number(s.weight) > 0 ? '+' : '' %><%= Number(s.weight).toFixed(2) %></span>
+            <span class="signal-note"><%= s.key.replace(/_/g, ' ') %> · <%= s.severity %></span>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+
+    <% if (claim.decided_at) { %>
+      <div class="card">
+        <div class="card-head"><h3>Decision record</h3><span class="badge is-<%= sm.tone %>"><%= sm.label %></span></div>
+        <div class="card-body">
+          <p class="small" style="color:var(--text-2)"><%= claim.decision_notes %></p>
+          <div class="small text-muted">By <%= claim.decided_by_name || 'System' %> on <%= helpers.formatDateTime(claim.decided_at) %> · approved <%= claim.approved_amount ? helpers.formatCurrency(claim.approved_amount) : '—' %></div>
+          <% if (payment) { %>
+            <div class="divider"></div>
+            <div class="small">Payment: <b><%= payment.status %></b> · <%= helpers.formatCurrency(payment.amount) %> · <span class="mono"><%= payment.order_id %></span> <%= payment.paid_at ? '· ' + helpers.formatDateTime(payment.paid_at) : '' %></div>
+          <% } %>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="stack sticky-side">
+    <div class="card">
+      <div class="card-head"><h3><%= settled ? 'Decision' : 'Take a decision' %></h3></div>
+      <div class="card-body">
+        <% if (!settled) { %>
+          <form action="/admin/claims/<%= claim.id %>/decision" method="post" class="form-grid">
+            <input type="hidden" name="action" value="approve">
+            <div class="field">
+              <label for="approved_amount">Approved amount (₹) <span class="req">*</span></label>
+              <input class="input" id="approved_amount" name="approved_amount" type="number" min="1" step="100" required value="<%= Math.round(Number(claim.approved_amount || claim.repair_cost || claim.reported_amount || 0)) %>">
+              <span class="hint">Assessed repair cost <%= helpers.formatCurrency(claim.repair_cost || 0) %>. Cannot exceed that by more than 5%.</span>
+            </div>
+            <div class="field">
+              <label for="notes">Remarks</label>
+              <textarea class="textarea" id="notes" name="notes" style="min-height:80px" placeholder="Basis for approval, deductions applied, garage confirmed…"></textarea>
+            </div>
+            <button class="btn btn-primary btn-block" type="submit" data-confirm="Approve this claim and notify the customer?"><svg class="icon"><use href="#i-check"/></svg> Approve claim</button>
+          </form>
+
+          <details class="mt-2">
+            <summary class="small fw-600" style="cursor:pointer;color:var(--danger)">Reject this claim</summary>
+            <form action="/admin/claims/<%= claim.id %>/decision" method="post" class="form-grid mt-1">
+              <input type="hidden" name="action" value="reject">
+              <div class="field">
+                <label for="reject_notes">Reason for rejection <span class="req">*</span></label>
+                <textarea class="textarea" id="reject_notes" name="notes" required style="min-height:80px" placeholder="Cite the clause or finding that makes the claim inadmissible."></textarea>
+              </div>
+              <button class="btn btn-danger btn-block" type="submit" data-confirm="Reject this claim? The customer is notified with these remarks."><svg class="icon"><use href="#i-x"/></svg> Reject claim</button>
+            </form>
+          </details>
+        <% } else { %>
+          <div class="note-box is-<%= claim.status === 'rejected' ? 'danger' : 'success' %>">
+            <b><%= sm.label %></b><br>
+            <%= claim.decision_notes || '' %>
+          </div>
+          <% if (claim.status === 'approved') { %>
+            <div class="divider"></div>
+            <div class="row-between mb-1"><span class="small text-muted">Approved</span><b><%= helpers.formatCurrency(claim.approved_amount) %></b></div>
+            <form action="/admin/claims/<%= claim.id %>/payout" method="post">
+              <button class="btn btn-primary btn-block" type="submit" data-confirm="Mark this claim paid by NEFT and notify the customer?"><svg class="icon"><use href="#i-wallet"/></svg> Record NEFT payout</button>
+            </form>
+            <p class="hint mt-1 mb-0">Use this for offline settlement. The customer can also complete the payout from their panel.</p>
+          <% } %>
+          <% if (claim.approved_amount && claim.status === 'approved' && Number(claim.approved_amount) > Number(claim.repair_cost || 0)) { %>
+            <div class="note-box is-warn mt-2 small">Approved amount is above the AI estimate — ensure the file supports it.</div>
+          <% } %>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Manual assessment</h3></div>
+      <div class="card-body">
+        <form action="/admin/claims/<%= claim.id %>/manual-assessment" method="post" class="form-grid">
+          <div class="grid grid-2" style="gap:.6rem">
+            <div class="field">
+              <label for="severity">Severity</label>
+              <select class="select" id="severity" name="severity">
+                <% ['minor', 'moderate', 'major', 'total_loss'].forEach(function (s) { %>
+                  <option value="<%= s %>" <%= claim.severity === s ? 'selected' : '' %>><%= helpers.SEVERITY_META[s].label %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="field"><label for="fraud_score">Fraud score (%)</label><input class="input" id="fraud_score" name="fraud_score" type="number" min="0" max="100" value="<%= Math.round(Number(claim.fraud_score || 0) * 100) %>"></div>
+          </div>
+          <div class="field"><label for="repair_cost">Repair cost override (₹)</label><input class="input" id="repair_cost" name="repair_cost" type="number" min="0" step="100" value="<%= Math.round(Number(claim.repair_cost || 0)) %>"></div>
+          <div class="field"><label for="assessment_notes">Adjuster note</label><textarea class="textarea" id="assessment_notes" name="notes" style="min-height:64px" placeholder="Survey findings, garage quote comparison…"></textarea></div>
+          <button class="btn btn-outline btn-block btn-sm" type="submit">Save assessment</button>
+        </form>
+        <p class="hint mb-0">AI thresholds: auto-approve ≥ <%= settings.auto_approve_confidence || '88' %>%, max fraud <%= settings.max_fraud_score || '0.28' %>, max image AI <%= settings.max_image_ai_probability || '22' %>%. <a href="/admin/settings">Change</a></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Claim file</h3></div>
+      <div class="card-body">
+        <dl class="kv" style="grid-template-columns:1fr;gap:.1rem">
+          <dt>Customer</dt><dd><a href="/admin/customers/<%= claim.customer_id %>"><%= claim.customer_name %></a><div class="small text-muted"><%= claim.customer_phone %> · <%= claim.customer_email %></div></dd>
+          <dt>Type</dt><dd><%= helpers.CLAIM_TYPE_LABELS[claim.claim_type] %><%= claim.is_manual_entry ? ' · registered manually' : '' %></dd>
+          <dt>Incident</dt><dd><%= helpers.formatDate(claim.incident_date) %><%= claim.incident_time ? ' · ' + helpers.formatTime(claim.incident_time) : '' %></dd>
+          <dt>Location</dt><dd><%= claim.location %></dd>
+          <dt>Policy</dt><dd><a class="mono" href="/admin/policies/<%= claim.policy_id %>"><%= claim.policy_number %></a><div class="small text-muted"><%= helpers.POLICY_TYPE_LABELS[claim.policy_type] %> · IDV <%= helpers.formatCurrency(claim.idv) %></div></dd>
+          <dt>FIR</dt><dd><%= claim.fir_number || 'Not provided' %></dd>
+          <dt>Submitted</dt><dd><%= helpers.formatDateTime(claim.created_at) %></dd>
+        </dl>
+        <div class="divider"></div>
+        <div class="small text-muted mb-1">Customer description</div>
+        <p class="small" style="color:var(--text-2)"><%= claim.description %></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/admin-end') %>

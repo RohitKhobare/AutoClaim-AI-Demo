@@ -1,0 +1,126 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main class="container" style="padding-top:1.75rem;padding-bottom:2rem">
+  <div class="page-head">
+    <div>
+      <div class="breadcrumb"><a href="/app">Dashboard</a><svg class="icon"><use href="#i-chevron-right"/></svg><a href="/app/policies">Policies</a><svg class="icon"><use href="#i-chevron-right"/></svg><span><%= policy.policy_number %></span></div>
+      <h1><%= policy.make %> <%= policy.model %></h1>
+      <p class="lead mono"><%= policy.registration_no %> · <%= policy.policy_number %></p>
+    </div>
+    <div class="flex">
+      <span class="badge is-<%= policy.status === 'active' ? 'success' : 'danger' %>" style="font-size:.8rem;padding:.4rem .7rem"><%= helpers.titleCase(policy.status) %></span>
+      <% if (policy.status === 'active') { %>
+        <a class="btn btn-primary" href="/app/claims/new?vehicle=<%= policy.vehicle_id %>"><svg class="icon"><use href="#i-plus"/></svg> File a claim</a>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 340px;gap:1.25rem;align-items:start">
+    <div class="stack">
+      <div class="card">
+        <div class="card-head"><h3>Policy schedule</h3><span class="small text-muted"><%= policy.insurer %></span></div>
+        <div class="card-body">
+          <dl class="kv" style="grid-template-columns:180px 1fr">
+            <dt>Policy number</dt><dd class="mono"><%= policy.policy_number %></dd>
+            <dt>Insured</dt><dd><%= currentUser.full_name %></dd>
+            <dt>Vehicle</dt><dd><%= policy.make %> <%= policy.model %> <%= policy.variant || '' %> · <%= policy.year %></dd>
+            <dt>Registration</dt><dd class="mono"><%= policy.registration_no %></dd>
+            <dt>Fuel</dt><dd><%= helpers.titleCase(policy.fuel_type) %></dd>
+            <dt>Cover type</dt><dd><%= helpers.POLICY_TYPE_LABELS[policy.policy_type] %></dd>
+            <dt>Policy period</dt><dd><%= helpers.formatDate(policy.start_date) %> → <%= helpers.formatDate(policy.end_date) %></dd>
+            <dt>Sum insured</dt><dd><%= helpers.formatCurrency(policy.sum_insured) %></dd>
+            <dt>IDV</dt><dd><%= helpers.formatCurrency(policy.idv) %></dd>
+            <dt>Premium paid</dt><dd><%= helpers.formatCurrency(policy.premium) %></dd>
+            <dt>Compulsory deductible</dt><dd><%= helpers.formatCurrency(policy.deductible) %></dd>
+            <dt>No-claim bonus</dt><dd><%= Number(policy.ncb_percent) %>%</dd>
+          </dl>
+
+          <div class="divider"></div>
+          <div class="small fw-600 mb-1">Add-ons</div>
+          <% if (!addons.length) { %>
+            <p class="small text-muted mb-0">No add-on covers on this policy.</p>
+          <% } else { %>
+            <div class="flex">
+              <% addons.forEach(function (a) { %><span class="pill"><svg class="icon" style="width:13px;height:13px;color:var(--success)"><use href="#i-check"/></svg><%= a %></span><% }); %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Policy wording</h3>
+          <span class="small text-muted"><%= clauses.length %> clauses · used by the coverage agent</span>
+        </div>
+        <div class="card-body">
+          <% var groups = { coverage: 'What is covered', exclusion: 'Exclusions', condition: 'Conditions', claim_process: 'Claim process', deductible: 'Deductible' }; %>
+          <% Object.keys(groups).forEach(function (g) { var list = clauses.filter(function (c) { return c.category === g; }); %>
+            <% if (list.length) { %>
+              <div class="small fw-600 text-muted" style="text-transform:uppercase;letter-spacing:.07em;margin:1rem 0 .4rem"><%= groups[g] %></div>
+              <% list.forEach(function (c) { %>
+                <details class="faq-item mb-1" style="border-radius:10px">
+                  <summary><span><span class="mono" style="color:var(--primary)"><%= c.clause_no %></span> · <%= c.title %></span></summary>
+                  <p style="color:var(--text-2)"><%= c.body %></p>
+                </details>
+              <% }); %>
+            <% } %>
+          <% }); %>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Claims under this policy</h3></div>
+        <% if (!claims.length) { %>
+          <div class="empty" style="padding:1.75rem"><p class="mb-0">No claims filed under this policy yet.</p></div>
+        <% } else { %>
+          <div class="table-wrap" style="border:0">
+            <table class="table">
+              <thead><tr><th>Claim</th><th>Incident</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                <% claims.forEach(function (c) { var sm = helpers.statusMeta(c.status); %>
+                  <tr>
+                    <td class="mono small"><%= c.claim_number %></td>
+                    <td class="small"><%= helpers.formatDate(c.incident_date) %></td>
+                    <td class="num"><%= helpers.formatCurrency(c.approved_amount || c.reported_amount) %></td>
+                    <td><span class="badge is-<%= sm.tone %>"><%= sm.label %></span></td>
+                    <td class="text-right"><a class="small" href="/app/claims/<%= c.id %>">Open</a></td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="stack sticky-side">
+      <div class="card card-accent">
+        <div class="card-body">
+          <div class="small text-muted">Days of cover remaining</div>
+          <div class="stat-value" style="font-size:2rem"><%= Math.max(0, Number(policy.days_left)) %></div>
+          <div class="small text-muted">Expires <%= helpers.formatDate(policy.end_date) %></div>
+          <div class="meter mt-2"><span style="width:<%= Math.max(4, Math.min(100, (Number(policy.days_left) / 365) * 100)) %>%"></span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Coverage snapshot</h3></div>
+        <div class="card-body stack-sm small">
+          <div class="row-between"><span class="text-muted">Own damage</span><b><%= policy.policy_type === 'third_party' ? 'Not covered' : 'Covered' %></b></div>
+          <div class="row-between"><span class="text-muted">Third-party liability</span><b>Covered</b></div>
+          <div class="row-between"><span class="text-muted">Natural calamity</span><b><%= policy.policy_type === 'third_party' ? 'Not covered' : 'Covered' %></b></div>
+          <div class="row-between"><span class="text-muted">Theft</span><b><%= policy.policy_type === 'third_party' ? 'Not covered' : 'Covered' %></b></div>
+          <div class="row-between"><span class="text-muted">Deductible per claim</span><b><%= helpers.formatCurrency(policy.deductible) %></b></div>
+          <% if (addons.indexOf('Zero Depreciation Cover') > -1) { %>
+            <div class="row-between"><span class="text-muted">Zero depreciation</span><b class="impact-pos">Active</b></div>
+          <% } %>
+        </div>
+        <div class="card-foot">
+          <a class="btn btn-ghost btn-sm btn-block" href="/app/support">Question about this cover?</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

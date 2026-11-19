@@ -1,0 +1,41 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main class="container container-narrow" style="padding-top:1.75rem;padding-bottom:2rem">
+  <div class="page-head">
+    <div>
+      <div class="breadcrumb"><a href="/app">Dashboard</a><svg class="icon"><use href="#i-chevron-right"/></svg><span>Notifications</span></div>
+      <h1>Notifications</h1>
+      <p class="lead">Claim updates, settlement confirmations and policy reminders.</p>
+    </div>
+    <form action="/app/notifications/read" method="post">
+      <input type="hidden" name="back" value="/app/notifications">
+      <button class="btn btn-outline btn-sm" type="submit"><svg class="icon"><use href="#i-check"/></svg> Mark all read</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <% if (!notifications.length) { %>
+      <div class="empty">
+        <svg class="icon"><use href="#i-bell"/></svg>
+        <h4>No notifications</h4>
+        <p>You will see claim and policy updates here.</p>
+      </div>
+    <% } else { %>
+      <% notifications.forEach(function (n) { %>
+        <a href="/app/notifications/<%= n.id %>/open" style="display:flex;gap:.9rem;padding:1rem 1.35rem;border-bottom:1px solid var(--border);text-decoration:none;color:inherit;align-items:flex-start;<%= n.read_at ? '' : 'background:var(--green-50)' %>">
+          <span class="doc-icon" style="background:var(--surface)"><svg class="icon"><use href="#i-<%= n.icon || 'bell' %>"/></svg></span>
+          <div style="flex:1;min-width:0">
+            <div class="fw-600 small"><%= n.title %></div>
+            <div class="small text-muted"><%= n.body %></div>
+            <div class="small text-muted mt-1"><%= helpers.timeAgo(n.created_at) %></div>
+          </div>
+          <% if (!n.read_at) { %><span class="badge is-info">New</span><% } %>
+          <svg class="icon" style="width:15px;height:15px;color:var(--muted);margin-top:.3rem"><use href="#i-chevron-right"/></svg>
+        </a>
+      <% }); %>
+    <% } %>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

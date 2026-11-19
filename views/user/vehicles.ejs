@@ -1,0 +1,124 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main class="container" style="padding-top:1.75rem;padding-bottom:2rem">
+  <div class="page-head">
+    <div>
+      <div class="breadcrumb"><a href="/app">Dashboard</a><svg class="icon"><use href="#i-chevron-right"/></svg><span>Vehicles</span></div>
+      <h1>My vehicles</h1>
+      <p class="lead">Vehicles and their linked policies. A vehicle needs an active policy before a claim can be filed.</p>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 380px;gap:1.25rem;align-items:start">
+    <div class="stack">
+      <% if (!vehicles.length) { %>
+        <div class="card"><div class="empty">
+          <svg class="icon"><use href="#i-car"/></svg>
+          <h4>No vehicles yet</h4>
+          <p>Add your car or two-wheeler to see its policy and file claims.</p>
+        </div></div>
+      <% } %>
+      <% vehicles.forEach(function (v) { var active = v.policy_status === 'active'; %>
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3><%= v.make %> <%= v.model %> <span class="text-muted" style="font-weight:500;font-size:.85rem"><%= v.variant || '' %></span></h3>
+              <div class="mono small" style="letter-spacing:.08em;color:var(--muted)"><%= v.registration_no %></div>
+            </div>
+            <span class="badge is-<%= active ? 'success' : 'danger' %>">
+              <svg class="icon"><use href="#i-<%= active ? 'shield' : 'alert' %>"/></svg>
+              <%= active ? 'Active cover' : (v.policy_status ? helpers.titleCase(v.policy_status) : 'No policy') %>
+            </span>
+          </div>
+          <div class="card-body">
+            <div class="grid grid-3" style="gap:1rem">
+              <div><div class="small text-muted">Year · Fuel</div><b class="small"><%= v.year %> · <%= helpers.titleCase(v.fuel_type) %></b></div>
+              <div><div class="small text-muted">Colour</div><b class="small"><%= v.colour || '—' %></b></div>
+              <div><div class="small text-muted">Odometer</div><b class="small"><%= v.odometer_km ? helpers.formatNumber(v.odometer_km) + ' km' : '—' %></b></div>
+              <div><div class="small text-muted">Chassis</div><b class="small mono"><%= v.chassis_no ? v.chassis_no.slice(0,4) + '••••' + v.chassis_no.slice(-4) : '—' %></b></div>
+              <div><div class="small text-muted">Policy</div><b class="small mono"><%= v.policy_number || '—' %></b></div>
+              <div><div class="small text-muted">Policy valid till</div><b class="small"><%= v.end_date ? helpers.formatDate(v.end_date) : '—' %></b></div>
+            </div>
+
+            <% if (v.policy_number) { %>
+              <div class="divider"></div>
+              <div class="row-between">
+                <div class="small text-muted"><%= helpers.POLICY_TYPE_LABELS[v.policy_type] || v.policy_type %> · IDV <%= helpers.formatCurrency(v.idv) %> · <%= v.claims_count %> claim(s)</div>
+                <div class="flex" style="gap:.4rem">
+                  <a class="btn btn-ghost btn-sm" href="/app/policies/<%= v.policy_id %>">Policy details</a>
+                  <% if (active) { %><a class="btn btn-primary btn-sm" href="/app/claims/new?vehicle=<%= v.id %>">File claim</a><% } %>
+                </div>
+              </div>
+            <% } else { %>
+              <div class="note-box is-warn mt-2 small">No policy is linked to this vehicle. Contact support or ask the insurer to issue a policy before claiming.</div>
+            <% } %>
+          </div>
+          <% if (Number(v.claims_count) === 0) { %>
+            <div class="card-foot text-right">
+              <form action="/app/vehicles/<%= v.id %>/delete" method="post" class="inline" data-confirm="Remove <%= v.registration_no %> from your account?">
+                <button class="btn btn-ghost btn-sm" type="submit" style="color:var(--danger)"><svg class="icon"><use href="#i-trash"/></svg> Remove vehicle</button>
+              </form>
+            </div>
+          <% } %>
+        </div>
+      <% }); %>
+    </div>
+
+    <div class="card" style="position:sticky;top:84px">
+      <div class="card-head"><h3>Add a vehicle</h3></div>
+      <div class="card-body">
+        <form action="/app/vehicles" method="post" class="form-grid">
+          <div class="field">
+            <label for="registration_no">Registration number <span class="req">*</span></label>
+            <input class="input" id="registration_no" name="registration_no" required placeholder="MH12AB1234" style="text-transform:uppercase">
+          </div>
+          <div class="grid grid-2" style="gap:.7rem">
+            <div class="field"><label for="make">Make <span class="req">*</span></label><input class="input" id="make" name="make" required placeholder="Hyundai"></div>
+            <div class="field"><label for="model">Model <span class="req">*</span></label><input class="input" id="model" name="model" required placeholder="Creta"></div>
+          </div>
+          <div class="grid grid-2" style="gap:.7rem">
+            <div class="field"><label for="variant">Variant</label><input class="input" id="variant" name="variant" placeholder="SX (O)"></div>
+            <div class="field"><label for="year">Year</label><input class="input" id="year" name="year" type="number" min="1990" max="2030" value="2022"></div>
+          </div>
+          <div class="grid grid-2" style="gap:.7rem">
+            <div class="field">
+              <label for="fuel_type">Fuel</label>
+              <select class="select" id="fuel_type" name="fuel_type">
+                <option value="petrol">Petrol</option><option value="diesel">Diesel</option><option value="cng">CNG</option>
+                <option value="electric">Electric</option><option value="hybrid">Hybrid</option>
+              </select>
+            </div>
+            <div class="field"><label for="colour">Colour</label><input class="input" id="colour" name="colour" placeholder="White"></div>
+          </div>
+          <div class="grid grid-2" style="gap:.7rem">
+            <div class="field"><label for="chassis_no">Chassis no.</label><input class="input" id="chassis_no" name="chassis_no"></div>
+            <div class="field"><label for="odometer_km">Odometer (km)</label><input class="input" id="odometer_km" name="odometer_km" type="number" min="0"></div>
+          </div>
+
+          <div class="divider"></div>
+          <div class="small fw-600">Link an existing policy <span class="text-muted" style="font-weight:400">(optional)</span></div>
+          <div class="field"><label for="policy_number">Policy number</label><input class="input" id="policy_number" name="policy_number" placeholder="POL-2026-1011"></div>
+          <div class="grid grid-2" style="gap:.7rem">
+            <div class="field">
+              <label for="policy_type">Policy type</label>
+              <select class="select" id="policy_type" name="policy_type">
+                <option value="comprehensive">Comprehensive</option>
+                <option value="third_party">Third-party only</option>
+                <option value="own_damage">Own damage</option>
+              </select>
+            </div>
+            <div class="field"><label for="idv">IDV (₹)</label><input class="input" id="idv" name="idv" type="number" min="0" placeholder="450000"></div>
+          </div>
+          <div class="grid grid-2" style="gap:.7rem">
+            <div class="field"><label for="start_date">Start date</label><input class="input" id="start_date" name="start_date" type="date"></div>
+            <div class="field"><label for="end_date">End date</label><input class="input" id="end_date" name="end_date" type="date"></div>
+          </div>
+          <button class="btn btn-primary btn-block" type="submit"><svg class="icon"><use href="#i-plus"/></svg> Add vehicle</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,40 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main>
+  <section class="section">
+    <div class="container container-narrow">
+      <span class="eyebrow">Legal</span>
+      <h1 class="mt-1" style="font-size:2rem">Terms of service & privacy</h1>
+      <p class="text-muted">Last updated: November 2026 · This is an academic project deployment of AutoClaim AI.</p>
+
+      <div class="card card-pad mt-3">
+        <h3>1. Scope of the service</h3>
+        <p class="small text-muted">AutoClaim AI is a demonstration platform for AI-assisted motor insurance claim processing, developed as a final-year engineering project. It is not a licensed insurer and does not issue policies. Settlement figures shown in demo mode are simulated and no money is transferred.</p>
+
+        <h3 class="mt-3">2. Claim decisions</h3>
+        <p class="small text-muted">Automated checks produce a recommendation only. Every claim decision is confirmed by a human reviewer. Approved amounts are limited to the assessed repair cost and the terms of the linked policy, including the compulsory deductible.</p>
+
+        <h3 class="mt-3">3. Evidence and accuracy</h3>
+        <p class="small text-muted">Claimants confirm that all documents and photographs are genuine and relate to the reported incident. Submitting manipulated images or altered documents may result in rejection of the claim and referral to the insurer's fraud team. The platform records image forensics scores and document verification results for each submission.</p>
+
+        <h3 class="mt-3">4. Data we store</h3>
+        <p class="small text-muted">Account details (name, email, phone, city), vehicle and policy records, claim evidence you upload, verification results, support conversations, notifications and payment references. Uploaded evidence is stored on the server hosting this deployment.</p>
+
+        <h3 class="mt-3">5. Who can access your data</h3>
+        <p class="small text-muted">You, and the claims team accounts that review your claim. Administrative access to a claim, decision or payout is written to an audit log with the account name and timestamp. The public policy lookup returns cover status only, never personal details.</p>
+
+        <h3 class="mt-3">6. Payments</h3>
+        <p class="small text-muted">Settlements run through a demo gateway unless the deployment is configured with Razorpay API keys. In demo mode, order identifiers and receipts are generated locally and no card, UPI or bank credentials are collected.</p>
+
+        <h3 class="mt-3">7. Accounts</h3>
+        <p class="small text-muted">Keep your password confidential. Accounts may be deactivated by an administrator if activity appears fraudulent or abusive. You may request deletion of your account by contacting the claims desk; claim records are retained where required for audit.</p>
+
+        <h3 class="mt-3">8. Contact</h3>
+        <p class="small text-muted mb-0"><%= contact.person %> · <a href="tel:<%= contact.phone %>">+91 <%= contact.phone %></a> · <a href="mailto:<%= contact.email %>"><%= contact.email %></a><br><%= contact.address %></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

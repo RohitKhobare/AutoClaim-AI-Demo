@@ -1,0 +1,17 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+<main class="error-page">
+  <div>
+    <div class="error-code">500</div>
+    <h1>Something went wrong</h1>
+    <p class="lead">The server could not complete this request. Please try again, or contact support if it keeps happening.</p>
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="note-box is-danger mono" style="max-width:640px;margin:1rem auto;text-align:left;word-break:break-word"><%= error %></div>
+    <% } %>
+    <div class="flex" style="justify-content:center;margin-top:1.25rem">
+      <a class="btn btn-primary" href="/app">Dashboard</a>
+      <a class="btn btn-outline" href="/contact">Contact support</a>
+    </div>
+  </div>
+</main>
+<%- include('../partials/footer') %>

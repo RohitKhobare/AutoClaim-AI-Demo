@@ -1,0 +1,80 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<main class="container" style="padding-top:1.75rem;padding-bottom:2rem">
+  <div class="page-head">
+    <div>
+      <div class="breadcrumb"><a href="/app">Dashboard</a><svg class="icon"><use href="#i-chevron-right"/></svg><span>Support</span></div>
+      <h1>Help & support</h1>
+      <p class="lead">Open a ticket, or call the claims desk directly. Tickets stay linked to your policy and claim history.</p>
+    </div>
+    <div class="flex small">
+      <a class="btn btn-outline btn-sm" href="tel:<%= contact.phone %>"><svg class="icon"><use href="#i-phone"/></svg> +91 <%= contact.phone %></a>
+      <a class="btn btn-outline btn-sm" href="mailto:<%= contact.email %>"><svg class="icon"><use href="#i-mail"/></svg> Email</a>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 380px;gap:1.25rem;align-items:start">
+    <div class="card">
+      <div class="card-head"><h3>Your tickets</h3><span class="small text-muted"><%= tickets.length %> total</span></div>
+      <% if (!tickets.length) { %>
+        <div class="empty"><svg class="icon"><use href="#i-message"/></svg><h4>No tickets yet</h4><p>Create one using the form on the right.</p></div>
+      <% } else { %>
+        <div class="table-wrap" style="border:0">
+          <table class="table">
+            <thead><tr><th>Ticket</th><th>Subject</th><th>Status</th><th>Updated</th><th></th></tr></thead>
+            <tbody>
+              <% tickets.forEach(function (tk) { var st = helpers.TICKET_STATUS[tk.status]; %>
+                <tr>
+                  <td class="mono small"><%= tk.ticket_no %></td>
+                  <td><b class="small"><%= tk.subject %></b><div class="small text-muted truncate" style="max-width:34ch"><%= tk.last_message || '' %></div></td>
+                  <td><span class="badge is-<%= st.tone %>"><%= st.label %></span></td>
+                  <td class="small text-muted"><%= helpers.timeAgo(tk.updated_at) %></td>
+                  <td class="text-right"><a class="small" href="/app/support/<%= tk.id %>">Open</a></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>New ticket</h3></div>
+      <div class="card-body">
+        <form action="/app/support" method="post" class="form-grid">
+          <div class="field">
+            <label for="subject">Subject <span class="req">*</span></label>
+            <input class="input" id="subject" name="subject" required placeholder="Need help with claim CLM-2026-0002">
+          </div>
+          <div class="grid grid-2" style="gap:.7rem">
+            <div class="field">
+              <label for="category">Category</label>
+              <select class="select" id="category" name="category">
+                <option value="claim">Claim</option><option value="policy">Policy</option>
+                <option value="payment">Payment</option><option value="technical">Technical</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="priority">Priority</label>
+              <select class="select" id="priority" name="priority">
+                <option value="low">Low</option><option value="normal" selected>Normal</option>
+                <option value="high">High</option><option value="urgent">Urgent</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="message">Message <span class="req">*</span></label>
+            <textarea class="textarea" id="message" name="message" required placeholder="Explain the issue and include the claim number if relevant."></textarea>
+          </div>
+          <button class="btn btn-primary btn-block" type="submit">Create ticket</button>
+        </form>
+        <div class="divider"></div>
+        <div class="small text-muted"><%= company.supportHours %><br><%= contact.person %> · <%= contact.phone %></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

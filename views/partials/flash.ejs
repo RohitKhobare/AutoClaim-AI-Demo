@@ -1,0 +1,25 @@
+<% if (messages && ((messages.success && messages.success.length) || (messages.error && messages.error.length) || (messages.info && messages.info.length))) { %>
+<div class="flash-wrap">
+  <% (messages.success || []).forEach(function (m) { %>
+    <div class="flash success">
+      <svg class="icon"><use href="#i-check-circle"/></svg>
+      <div><%= m %></div>
+      <button type="button" data-dismiss aria-label="<%= t('common.close') %>">&times;</button>
+    </div>
+  <% }); %>
+  <% (messages.error || []).forEach(function (m) { %>
+    <div class="flash error">
+      <svg class="icon"><use href="#i-alert"/></svg>
+      <div><%= m %></div>
+      <button type="button" data-dismiss aria-label="<%= t('common.close') %>">&times;</button>
+    </div>
+  <% }); %>
+  <% (messages.info || []).forEach(function (m) { %>
+    <div class="flash info">
+      <svg class="icon"><use href="#i-info"/></svg>
+      <div><%= m %></div>
+      <button type="button" data-dismiss aria-label="<%= t('common.close') %>">&times;</button>
+    </div>
+  <% }); %>
+</div>
+<% } %>
