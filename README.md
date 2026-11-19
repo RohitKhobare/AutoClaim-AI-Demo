@@ -87,10 +87,10 @@ If MySQL is not installed, `scripts/dev-mysql.js` can start a temporary server o
 
 ## Free public demo deployment
 
-The included [`render.yaml`](./render.yaml) configures a Render free web service and starts a temporary MySQL server inside the service, so no separate database account is required. Free-tier availability and limits are controlled by the provider and can change. Demo data is recreated when the service restarts or redeploys.
+The included [`render.yaml`](./render.yaml) configures a Render free Docker web service and starts a temporary MySQL server inside the service, so no separate database account is required. Free-tier availability and limits are controlled by the provider and can change. Demo data is recreated when the service restarts or redeploys.
 
 1. In Render, choose **New → Blueprint**, connect this repository, and deploy. The blueprint generates private session/admin passwords and advertises the customer demo account on the login page. No external database settings are needed.
-2. The start command brings up temporary MySQL, initializes the schema and demo data, then starts the web app. Render's free service may sleep when idle; data is lost whenever the service stops or restarts.
+2. The container installs the MySQL runtime libraries, then its start command brings up temporary MySQL, initializes the schema and demo data, and starts the web app. Render's free service may sleep when idle; data is lost whenever the service stops or restarts.
 
 3. Wait for the deployment to finish. The public URL is shown in the Render dashboard.
 
